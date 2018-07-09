@@ -73,8 +73,10 @@ void push_info_msg(char *msg)
     }
 
     struct info_msg *item = malloc(sizeof(struct info_msg));
-    if (item == NULL)
+    if (item == NULL) {
         test_metadata.err = ENOMEM;
+        return;
+    }
 
     item->next = NULL;
     item->msg = malloc(strlen(msg) + 1);
@@ -197,11 +199,11 @@ int clean_suite1(void)
 
 void start_test()
 {
-    bzero(&test_metadata,sizeof(test_metadata));
-    bzero(&stats,sizeof(stats));
-    bzero(&failures,sizeof(failures));
-    bzero(&monitored,sizeof(monitored));
-    bzero(&logs,sizeof(logs));
+    memset(&test_metadata, 0, sizeof(test_metadata));
+    memset(&stats, 0, sizeof(stats));
+    memset(&failures, 0, sizeof(failures));
+    memset(&monitored, 0, sizeof(monitored));
+    memset(&logs, 0, sizeof(logs));
 }
 
 int __real_exit(int status);
