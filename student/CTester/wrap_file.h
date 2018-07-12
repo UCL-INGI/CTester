@@ -29,9 +29,9 @@ struct params_creat_t {
 // basic statistics for the utilisation of the creat system call
 
 struct stats_creat_t {
-  int called;  // number of times the open system call has been issued
+  int called;  // number of times the creat system call has been issued
   struct params_creat_t last_params; // parameters for the last call issued
-  int last_return;   // return value of the last open call issued
+  int last_return;   // return value of the last creat call issued
 };
 
 
@@ -42,9 +42,9 @@ struct params_close_t {
 // basic statistics for the utilisation of the close system call
 
 struct stats_close_t {
-  int called;  // number of times the open system call has been issued
+  int called;  // number of times the close system call has been issued
   struct params_close_t last_params; // parameters for the last call issued
-  int last_return;   // return value of the last open call issued
+  int last_return;   // return value of the last close call issued
 };
 
 struct params_read_t {
@@ -72,7 +72,7 @@ struct params_write_t {
 struct stats_write_t {
   int called;  // number of times the write system call has been issued
   struct params_read_t last_params; // parameters for the last call issued
-  int last_return;   // return value of the last read call issued
+  int last_return;   // return value of the last write call issued
 };
 
 struct params_stat_t {
@@ -83,9 +83,9 @@ struct params_stat_t {
 // basic statistics for the utilisation of the stat system call
 
 struct stats_stat_t {
-  int called;  // number of times the write system call has been issued
+  int called;  // number of times the stat system call has been issued
   struct params_stat_t last_params; // parameters for the last call issued
-  int last_return;   // return value of the last read call issued
+  int last_return;   // return value of the last stat call issued
   struct stat returned_stat; // last returned stat structure
 };
 
@@ -98,9 +98,9 @@ struct params_fstat_t {
 // basic statistics for the utilisation of the fstat system call
 
 struct stats_fstat_t {
-  int called;  // number of times the write system call has been issued
+  int called;  // number of times the fstat system call has been issued
   struct params_fstat_t last_params; // parameters for the last call issued
-  int last_return;   // return value of the last read call issued
+  int last_return;   // return value of the last fstat call issued
   struct stat returned_stat; // last returned stat structure
 };
 
@@ -111,7 +111,7 @@ struct params_lseek_t {
   int whence;
 }; 
 
-// basic statistics for the utilisation of the fstat system call
+// basic statistics for the utilisation of the lseek system call
 
 struct stats_lseek_t {
   int called;  // number of times the lseek system call has been issued

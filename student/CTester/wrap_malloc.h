@@ -83,7 +83,7 @@ struct params_realloc_t {
 // basic statistics for the utilisation of the realloc call
 
 struct stats_realloc_t {
-  int called;  // number of times the malloc call has been issued
+  int called;  // number of times the realloc call has been issued
   struct params_realloc_t last_params; // parameters for the last call issued
   void  *last_return;   // return value of the last realloc call issued
 };
@@ -94,7 +94,7 @@ struct stats_realloc_t {
 //void malloc_log_init(struct malloc_t *l);
 void malloc_log(void *ptr, size_t size);
 
-// true if memory was allocated by malloc, false otherwise
+// true if memory was allocated by malloc/realloc etc, false otherwise
 int malloced(void *addr);
 // total amount of memory allocated by malloc
 int  malloc_allocated();

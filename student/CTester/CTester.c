@@ -80,8 +80,10 @@ void push_info_msg(char *msg)
 
     item->next = NULL;
     item->msg = malloc(strlen(msg) + 1);
-    if (item->msg == NULL)
+    if (item->msg == NULL) {
         test_metadata.err = ENOMEM;
+        return;
+    }
 
     strcpy(item->msg, msg);
     if (test_metadata.fifo_in == NULL && test_metadata.fifo_out == NULL) {
@@ -170,6 +172,7 @@ void sandbox_end()
 
     while ((n = read(pipe_stderr[0], buf, BUFSIZ)) > 0) {
         if (strstr(buf, "double free or corruption") != NULL) {
+            // TODO n'y a-t-il pas un risque que le message se fasse couper en plusieurs morceaux à cause de read ?
             CU_FAIL("Double free or corruption");
             push_info_msg(_("Your code produced a double free."));
             set_tag("double_free");
