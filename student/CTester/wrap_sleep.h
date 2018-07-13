@@ -1,8 +1,12 @@
+#ifndef __WRAP_SLEEP_H_
+#define __WRAP_SLEEP_H_
+
+#include <sys/types.h>
+#include <unistd.h>
+
 // never remove statistics from this structure, they could be
 // used by existing exercices. You might add some additional information
 // if it can help to validate some exercices
-#include <sys/types.h>
-#include <unistd.h>
 
 struct stats_sleep_t {
   int called;           // number of times the system call has been called
@@ -13,4 +17,6 @@ struct stats_sleep_t {
 void init_sleep();
 void clean_sleep();
 void resetstats_sleep();
+
+#endif // __WRAP_SLEEP_H_
 

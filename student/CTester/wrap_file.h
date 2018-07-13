@@ -1,3 +1,6 @@
+#ifndef __WRAP_FILE_H_
+#define __WRAP_FILE_H_
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -118,3 +121,5 @@ struct stats_lseek_t {
   struct params_lseek_t last_params; // parameters for the last call issued
   int last_return;   // return value of the last lseek call issued
 };
+
+#endif // __WRAP_FILE_H_

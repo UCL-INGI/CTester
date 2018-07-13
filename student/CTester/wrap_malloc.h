@@ -13,6 +13,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef __WRAP_MALLOC_H_
+#define __WRAP_MALLOC_H_
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -98,3 +100,5 @@ void malloc_log(void *ptr, size_t size);
 int malloced(void *addr);
 // total amount of memory allocated by malloc
 int  malloc_allocated();
+
+#endif // __WRAP_MALLOC_H_

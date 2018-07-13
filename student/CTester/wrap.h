@@ -1,3 +1,6 @@
+#ifndef __WRAP_H_
+#define __WRAP_H_
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
@@ -161,3 +164,5 @@ struct wrap_stats_t {
   struct stats_pthread_mutex_unlock_t pthread_mutex_destroy;
   struct stats_sleep_t sleep;
 };
+
+#endif // __WRAP_H_

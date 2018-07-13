@@ -1,8 +1,12 @@
+#ifndef __WRAP_GETPID_H_
+#define __WRAP_GETPID_H_
+
+#include <sys/types.h>
+#include <unistd.h>
+
 // never remove statistics from this structure, they could be
 // used by existing exercices. You might add some additional information
 // if it can help to validate some exercices
-#include <sys/types.h>
-#include <unistd.h>
 
 struct stats_getpid_t {
   int called;           // number of times the system call has been called
@@ -13,4 +17,6 @@ struct stats_getpid_t {
 void init_getpid();
 void clean_getpid();
 void resetstats_getpid();
+
+#endif // __WRAP_GETPID_H_
 
