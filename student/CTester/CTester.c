@@ -255,8 +255,11 @@ int run_tests(int argc, char *argv[], void *tests[], int nb_tests) {
     int *pipes[] = {pipe_stderr, pipe_stdout, usr_pipe_stdout, usr_pipe_stderr};
     for(int i=0; i < 4; i++) { // Configuring pipes to be non-blocking
         pipe(pipes[i]);
-        int flags = fcntl(pipes[i][0], F_GETFL, 0);
+        int flags;
+        flags = fcntl(pipes[i][0], F_GETFL, 0);
         fcntl(pipes[i][0], F_SETFL, flags | O_NONBLOCK);
+        flags = fcntl(pipes[i][1], F_GETFL, 0);
+        fcntl(pipes[i][1], F_SETFL, flags | O_NONBLOCK);
     }
     stdout_cpy = usr_pipe_stdout[0];
     stderr_cpy = usr_pipe_stderr[0];
