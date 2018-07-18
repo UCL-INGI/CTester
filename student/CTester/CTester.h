@@ -38,6 +38,9 @@ struct wrap_monitor_t monitored;
 struct wrap_fail_t failures;
 struct wrap_log_t logs;
 
+/**
+ * Readable file descriptors that contain the student's code outputs.
+ */
 int stdout_cpy, stderr_cpy;
 
 sigjmp_buf segv_jmp;

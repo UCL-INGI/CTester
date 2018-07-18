@@ -31,8 +31,19 @@ extern struct wrap_log_t logs;
 
 extern sigjmp_buf segv_jmp;
 
+/**
+ * Copies of the real standard output and error output
+ * (that is, the actual files refered to by STDOUT_FILENO and STDERR_FILENO
+ * before we change them using dup2(2)).
+ * This allows us to restore the correct stdout/stderr of the program after the sandbox.
+ */
 int true_stderr;
 int true_stdout;
+/**
+ * pipe_std(err|out)[2] : when in the sandbox, when writing on STD(ERR|OUT)_FILENO, the program will write on [1] too. At the end of the sandbox, its content (on [0]) will be writtent to usr_pip_std(err|out)[1].
+ * usr_pipe_std(err|out)[2] : when quitting the sandbox,
+ * the content of pipe_std(err|out)[0] will be written on [1], and will be accessible on std(err|out)_cpy too.
+ */
 int pipe_stderr[2], usr_pipe_stderr[2];
 int pipe_stdout[2], usr_pipe_stdout[2];
 extern int stdout_cpy, stderr_cpy;
@@ -108,10 +119,20 @@ void set_tag(char *tag)
         strncpy(test_metadata.tags[test_metadata.nb_tags++], tag, TAGS_LEN_MAX);
 }
 
-void segv_handler(int sig, siginfo_t *unused, void *unused2) {
+void segv_handler(int sig, siginfo_t *unused, void *unused2)
+{
     wrap_monitoring = false;
     push_info_msg(_("Your code produced a segfault."));
     set_tag("sigsegv");
+    wrap_monitoring = true;
+    siglongjmp(segv_jmp, 1);
+}
+
+void fpe_handler(int sig, siginfo_t *unused, void *unused2)
+{
+    wrap_monitoring = false;
+    push_info_msg(_("Your code produced an arithmetic exception."));
+    set_tag("sigfpe");
     wrap_monitoring = true;
     siglongjmp(segv_jmp, 1);
 }
@@ -157,7 +178,7 @@ void sandbox_end()
 {
     wrap_monitoring = false;
 
-    // Remapping stderr to the orignal one ...
+    // Remapping stdout and stderr to the orignal one ...
     dup2(true_stdout, STDOUT_FILENO); // TODO
     dup2(true_stderr, STDERR_FILENO);
 
@@ -258,6 +279,10 @@ int run_tests(int argc, char *argv[], void *tests[], int nb_tests) {
     sigaltstack(&ss, 0);
     sigfillset(&sa.sa_mask);
     int ret = sigaction(SIGSEGV, &sa, NULL);
+    if (ret)
+        return ret;
+    sa.sa_sigaction = fpe_handler;
+    ret = sigaction(SIGFPE, &sa, NULL);
     if (ret)
         return ret;
     sa.sa_sigaction = alarm_handler;
