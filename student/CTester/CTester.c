@@ -230,9 +230,26 @@ void start_test()
     memset(&logs, 0, sizeof(logs));
 }
 
-int __real_exit(int status);
-int __wrap_exit(int status){
-    return status;
+/**
+ * CTester functions should *never* call exit directly, but rather __real_exit;
+ * this prevents completely-undefined behaviour from arising in the correcter's program.
+ */
+void __real_exit(int status);
+
+/**
+ * The exit call is considered special by glibc and gcc:
+ * it considers that after such a call, everything that comes after it
+ * will never be executed normally, and therefore it doesn't bother
+ * adding code to perform a clean function return:
+ * the program will have undefined behaviour if this function,
+ * __wrap_exit, actually returns to the callee, and this may or may not end
+ * in a catchable segfault.
+ * If we accept the possibility of a student calling exit, then it is better
+ * to explicitly raise the segfault in order to have a less-undefined behaviour.
+ */
+void __wrap_exit(int status) {
+    raise(SIGSEGV); // raise SIGSEGV if it comes from the student.
+    // TODO add code so that the student's code can actually exit
 }
 
 int run_tests(int argc, char *argv[], void *tests[], int nb_tests) {
@@ -277,7 +294,7 @@ int run_tests(int argc, char *argv[], void *tests[], int nb_tests) {
         .ss_sp = stack,
     };
 
-    sa.sa_flags     = SA_NODEFER|SA_ONSTACK|SA_RESTART;
+    sa.sa_flags     = SA_NODEFER | SA_ONSTACK | SA_RESTART | SA_SIGINFO;
     sa.sa_sigaction = segv_handler;
     sigaltstack(&ss, 0);
     sigfillset(&sa.sa_mask);
