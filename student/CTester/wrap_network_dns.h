@@ -156,5 +156,24 @@ typedef void (*freeaddrinfo_badarg_report_t)();
  */
 void set_freeaddrinfo_badarg_report(freeaddrinfo_badarg_report_t reporter);
 
+
+/**
+ * Replaces getaddrinfo by a version which doesn't call DNS.
+ * node should be a numerical address, which will be converted using inet_pton
+ * and stored inside the answer.
+ * serv should be a positive short integer, representing the port.
+ * Returns only one addrinfo in *res, with appropriate values taken from
+ * node, serv and the fields from hints. Also, the canonical name is set,
+ * if specified, by 'C' followed by node.
+ */
+int simple_getaddrinfo(const char *node, const char *serv, const struct addrinfo *hints, struct addrinfo **res);
+
+/**
+ * Necessary for cross-library compatibility: should be used in place
+ * of the default freeaddrinfo to free the list returned by simple_getaddrinfo;
+ * see set_gai_methods for more information.
+ */
+void simple_freeaddrinfo(struct addrinfo *res);
+
 #endif // __WRAP_NETWORK_DNS_H_
 

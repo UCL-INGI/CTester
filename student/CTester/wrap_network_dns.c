@@ -16,6 +16,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netdb.h>
+#include <arpa/inet.h>
 #include <string.h>
 
 #include "wrap.h"
@@ -221,3 +222,99 @@ void set_gai_strerror_method(gai_strerror_method_t method)
     gai_strerror_method = method;
 }
 
+
+int simple_getaddrinfo(const char *node, const char *serv, const struct addrinfo *hints, struct addrinfo **res)
+{
+    uint8_t buf[sizeof(struct in6_addr)];
+    memset(buf, 0, sizeof(buf));
+    int family = hints->ai_family;
+    if (node == NULL) {
+        if (family == AF_INET) {
+            node = "127.0.0.1";
+        } else {
+            node = "::1";
+        }
+    }
+    // Let's try IPv4
+    int s = inet_pton(AF_INET, node, buf);
+    if (s == -1) { // error; should not happen
+        return EAI_FAMILY;
+    } else if (s == 1) { // IPVv4
+        family = AF_INET;
+    } else { // Let's try IPv6
+        memset(buf, 0, sizeof(buf));
+        s = inet_pton(AF_INET6, node, buf);
+        if (s == 1) {
+            family = AF_INET6;
+        } else if (s == -1) { // error; should not happen
+            return EAI_FAMILY;
+        } else { // badly encoded then
+            return EAI_NONAME;
+        }
+    }
+    if (hints->ai_family != AF_UNSPEC && family != hints->ai_family)
+        return EAI_FAMILY;
+    // Converted, and family identified
+    *res = malloc(sizeof(struct addrinfo));
+    struct addrinfo *rp = *res;
+    if (rp == NULL)
+        return EAI_MEMORY;
+    rp->ai_flags = 0;
+    rp->ai_family = family;
+    rp->ai_socktype = hints->ai_socktype;
+    rp->ai_protocol = hints->ai_protocol;
+    if ((hints->ai_flags & AI_CANONNAME) != 0) {
+        rp->ai_canonname = malloc(strlen(node) + 2);
+        if (rp->ai_canonname == NULL) {
+            free(rp);
+            *res = NULL;
+            return EAI_MEMORY;
+        }
+        strcpy((rp->ai_canonname) + 1, node);
+        rp->ai_canonname[0] = 'C';
+    } else {
+        rp->ai_canonname = NULL;
+    }
+    rp->ai_next = NULL;
+    if (family == AF_INET) {
+        struct sockaddr_in *addr = malloc(sizeof(struct sockaddr_in));
+        if (addr == NULL) {
+            free(rp->ai_canonname);
+            free(rp);
+            *res = NULL;
+            return EAI_MEMORY;
+        }
+        addr->sin_family = AF_INET;
+        addr->sin_port = htons((uint16_t)(strtol(serv, NULL, 10)));
+        memcpy(&(addr->sin_addr), buf, sizeof(struct in_addr));
+        rp->ai_addr = (struct sockaddr*)addr;
+        rp->ai_addrlen = sizeof(struct sockaddr_in);
+    } else {
+        struct sockaddr_in6 *addr = malloc(sizeof(struct sockaddr_in6));
+        if (addr == NULL) {
+            free(rp->ai_canonname);
+            free(rp);
+            *res = NULL;
+            return EAI_MEMORY;
+        }
+        memset(addr, 0, sizeof(*addr));
+        addr->sin6_family = AF_INET6;
+        addr->sin6_port = htons((uint16_t)(strtol(serv, NULL, 10)));
+        memcpy(&(addr->sin6_addr), buf, sizeof(struct in6_addr));
+        rp->ai_addr = (struct sockaddr*)addr;
+        rp->ai_addrlen = sizeof(struct sockaddr_in6);
+    }
+    return 0;
+}
+
+void simple_freeaddrinfo(struct addrinfo *res)
+{
+    struct addrinfo *p = res;
+    while (p != NULL) {
+        struct addrinfo *old = p;
+        p = p->ai_next;
+        free(old->ai_canonname);
+        free(old->ai_addr);
+        free(old);
+    }
+}
