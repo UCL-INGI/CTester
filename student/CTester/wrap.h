@@ -12,6 +12,7 @@
 #include "wrap_file.h"
 #include "wrap_malloc.h"
 #include "wrap_mutex.h"
+#include "wrap_network_dns.h"
 #include "wrap_sleep.h"
 
 // Basic structures for system call wrapper
@@ -40,6 +41,11 @@ struct wrap_monitor_t {
   bool pthread_mutex_init;
   bool pthread_mutex_destroy;
   bool sleep;
+
+  bool getaddrinfo;
+  bool getnameinfo;
+  bool freeaddrinfo;
+  bool gai_strerror;
 };
 
 #define MAX_LOG 1000
@@ -139,6 +145,19 @@ struct wrap_fail_t {
   uint32_t sleep;
   unsigned int sleep_ret;
 
+  uint32_t getaddrinfo;
+  int getaddrinfo_ret;
+  int getaddrinfo_errno;
+
+  uint32_t getnameinfo;
+  int getnameinfo_ret;
+  int getnameinfo_errno;
+
+  // freeaddrinfo - this call cannot fail, unless res is not a valid pointer.
+
+  // gai_strerror - this call cannot fail;
+  // if its parameter is an unkown error code, it just returns "Unknown error code"
+
 } ;
 
 
@@ -163,6 +182,11 @@ struct wrap_stats_t {
   struct stats_pthread_mutex_unlock_t pthread_mutex_init;
   struct stats_pthread_mutex_unlock_t pthread_mutex_destroy;
   struct stats_sleep_t sleep;
+
+  struct stats_getaddrinfo_t getaddrinfo;
+  struct stats_getnameinfo_t getnameinfo;
+  struct stats_freeaddrinfo_t freeaddrinfo;
+  struct stats_gai_strerror_t gai_strerror;
 };
 
 #endif // __WRAP_H_
