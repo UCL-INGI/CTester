@@ -1,9 +1,13 @@
 CC=gcc
 EXEC=tests
 LDFLAGS=-lcunit -lm -lpthread -ldl -rdynamic
-SRC=$(wildcard *.c) $(wildcard CTester/*.c)
+SRC=$(sort $(wildcard *.c)) $(sort $(wildcard CTester/*.c))
 OBJ=$(SRC:.c=.o)
-CFLAGS=-Wall -Werror -DC99 -std=gnu99 -ICTester -D_POSIX_C_SOURCE=200112L -D_DEFAULT_SOURCE
+CFLAGS = -Wall -Werror -Wextra -Wshadow -DC99 -std=gnu99 -ICTester -D_POSIX_C_SOURCE=200112L -D_DEFAULT_SOURCE
+DEBUGFLAGS = -g -Wno-unused-variable -Wno-unused-parameter
+OTHERFLAGS = -fstack-protector-all -D_FORTIFY_SOURCE=2 -fno-omit-frame-pointer
+#CFLAGS += $(DEBUGFLAGS)
+#CFLAGS += $(OTHERFLAGS)
 WRAP += -Wl,-wrap=exit
 WRAP += -Wl,-wrap=open -Wl,-wrap=creat -Wl,-wrap=close -Wl,-wrap=read -Wl,-wrap=write -Wl,-wrap=stat -Wl,-wrap=fstat -Wl,-wrap=lseek
 WRAP += -Wl,-wrap=getpid
@@ -35,6 +39,10 @@ compile-mo:
 
 clean:
 	rm -f $(EXEC) $(OBJ)
+#clr-aux:
+#	rm -f $(INC) $(ASM)
+rebuild: clean all
+
 
 .PHONY: tests
 
