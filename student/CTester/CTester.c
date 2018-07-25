@@ -121,6 +121,9 @@ void set_tag(char *tag)
 
 void segv_handler(int sig, siginfo_t *unused, void *unused2)
 {
+    (void)sig;
+    (void)unused;
+    (void)unused2;
     wrap_monitoring = false;
     push_info_msg(_("Your code produced a segfault."));
     set_tag("sigsegv");
@@ -130,6 +133,9 @@ void segv_handler(int sig, siginfo_t *unused, void *unused2)
 
 void fpe_handler(int sig, siginfo_t *unused, void *unused2)
 {
+    (void)sig;
+    (void)unused;
+    (void)unused2;
     wrap_monitoring = false;
     push_info_msg(_("Your code produced an arithmetic exception."));
     set_tag("sigfpe");
@@ -139,6 +145,9 @@ void fpe_handler(int sig, siginfo_t *unused, void *unused2)
 
 void alarm_handler(int sig, siginfo_t *unused, void *unused2)
 {
+    (void)sig;
+    (void)unused;
+    (void)unused2;
     wrap_monitoring = false;
     push_info_msg(_("Your code exceeded the maximal allowed execution time."));
     set_tag("timeout");
@@ -248,6 +257,7 @@ void __real_exit(int status);
  * to explicitly raise the segfault in order to have a less-undefined behaviour.
  */
 void __wrap_exit(int status) {
+    (void)status;
     raise(SIGSEGV); // raise SIGSEGV if it comes from the student.
     // TODO add code so that the student's code can actually exit
 }
@@ -360,12 +370,12 @@ int run_tests(int argc, char *argv[], void *tests[], int nb_tests) {
         if (ret < 0)
             return ret;
 
-        for(int i=0; i < test_metadata.nb_tags; i++) {
-            ret = fprintf(f_out, "%s", test_metadata.tags[i]);
+        for(int j=0; j < test_metadata.nb_tags; j++) {
+            ret = fprintf(f_out, "%s", test_metadata.tags[j]);
             if (ret < 0)
                 return ret;
 
-            if (i != test_metadata.nb_tags - 1) {
+            if (j != test_metadata.nb_tags - 1) {
                 ret = fprintf(f_out, ",");
                 if (ret < 0)
                     return ret;
