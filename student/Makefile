@@ -13,6 +13,7 @@ WRAP += -Wl,-wrap=open -Wl,-wrap=creat -Wl,-wrap=close -Wl,-wrap=read -Wl,-wrap=
 WRAP += -Wl,-wrap=getpid
 WRAP += -Wl,-wrap=malloc -Wl,-wrap=free -Wl,-wrap=realloc -Wl,-wrap=calloc
 WRAP += -Wl,-wrap=pthread_mutex_lock -Wl,-wrap=pthread_mutex_unlock -Wl,-wrap=pthread_mutex_trylock -Wl,-wrap=pthread_mutex_init -Wl,-wrap=pthread_mutex_destroy
+WRAP += -Wl,-wrap=getaddrinfo -Wl,-wrap=getnameinfo -Wl,-wrap=freeaddrinfo -Wl,-wrap=gai_strerror
 WRAP += -Wl,-wrap=sleep
 
 all: $(EXEC)
