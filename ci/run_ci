@@ -1,6 +1,6 @@
 #!/bin/bash
 
-declare -a tests=("test-simple-success" "test-simple-fail")
+declare -a tests=("test-simple-fail" "test-simple-success" "test_network_dns")
 cd "$(dirname "$0")"
 
 exec_test() {

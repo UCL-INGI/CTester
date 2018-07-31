@@ -201,6 +201,15 @@ const char * __wrap_gai_strerror(int ecode)
 }
 
 
+void reinit_stats_network_dns()
+{
+    memset(&(stats.getaddrinfo), 0, sizeof(stats.getaddrinfo));
+    memset(&(stats.freeaddrinfo), 0, sizeof(stats.freeaddrinfo));
+    memset(&(stats.getnameinfo), 0, sizeof(stats.getnameinfo));
+    memset(&(stats.gai_strerror), 0, sizeof(stats.gai_strerror));
+}
+
+
 void set_getaddrinfo_method(getaddrinfo_method_t method)
 {
     getaddrinfo_method = method;

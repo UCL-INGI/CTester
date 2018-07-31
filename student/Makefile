@@ -14,6 +14,7 @@ WRAP += -Wl,-wrap=getpid
 WRAP += -Wl,-wrap=malloc -Wl,-wrap=free -Wl,-wrap=realloc -Wl,-wrap=calloc
 WRAP += -Wl,-wrap=pthread_mutex_lock -Wl,-wrap=pthread_mutex_unlock -Wl,-wrap=pthread_mutex_trylock -Wl,-wrap=pthread_mutex_init -Wl,-wrap=pthread_mutex_destroy
 WRAP += -Wl,-wrap=getaddrinfo -Wl,-wrap=getnameinfo -Wl,-wrap=freeaddrinfo -Wl,-wrap=gai_strerror
+WRAP += -Wl,-wrap=accept -Wl,-wrap=bind -Wl,-wrap=connect -Wl,-wrap=listen -Wl,-wrap=recv -Wl,-wrap=recvfrom -Wl,-wrap=recvmsg -Wl,-wrap=send -Wl,-wrap=sendto -Wl,-wrap=sendmsg -Wl,-wrap=socket
 WRAP += -Wl,-wrap=sleep
 
 all: $(EXEC)

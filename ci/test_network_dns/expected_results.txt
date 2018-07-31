@@ -1,0 +1,1 @@
+wrapper_stats#SUCCESS#Tests that the wrapper functions correctly remembers the stats#1#

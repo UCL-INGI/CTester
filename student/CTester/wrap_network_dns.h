@@ -79,6 +79,9 @@ struct stats_gai_strerror_t {
 
 // TODO Maybe add some init, clean and resetstats methods to these calls ?
 
+void reinit_stats_network_dns();
+
+
 /**
  * When check is true, freeaddrinfo will check if its argument has been "returned" by an earlier call to getaddrinfo directly, and will report if it is not the case.
  */
