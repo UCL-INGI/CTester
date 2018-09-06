@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 
+// TODO fcntl
 // basic structure to record the parameters of the last open call
 
 

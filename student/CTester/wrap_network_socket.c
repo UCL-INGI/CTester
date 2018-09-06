@@ -17,6 +17,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <sys/socket.h>
+#include <poll.h>
 
 #include "wrap.h"
 
@@ -27,12 +28,15 @@ int     __real_accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
 int     __real_bind   (int sockfd, const struct sockaddr *addr, socklen_t addrlen);
 int     __real_connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
 int     __real_listen(int sockfd, int backlog);
+int     __real_poll(struct pollfd *fds, nfds_t nfds, int timeout);
 ssize_t __real_recv(int sockfd, void *buf, size_t len, int flags);
 ssize_t __real_recvfrom(int sockfd, void *buf, size_t len, int flags, struct sockaddr *src_addr, socklen_t *addrlen);
 ssize_t __real_recvmsg(int sockfd, struct msghdr *msg, int flags);
+int     __real_select(int nfds, fd_set *readfds, fd_set *write_fds, fd_set *except_fds, struct timeval *timeout);
 ssize_t __real_send(int sockfd, const void *buf, size_t len, int flags);
 ssize_t __real_sendmsg(int sockfd, const struct msghdr *msg, int flags);
 ssize_t __real_sendto(int sockfd, const void *buf, size_t len, int flags, const struct sockaddr *dest_addr, socklen_t addrlen);
+int     __real_shutdown(int sockfd, int how);
 int     __real_socket(int domain, int type, int protocol);
 
 
@@ -157,6 +161,36 @@ int __wrap_listen(int sockfd, int backlog)
     return (stats.listen.last_return = ret);
 }
 
+int __wrap_poll(struct pollfd *fds, nfds_t nfds, int timeout)
+{
+    if (!(wrap_monitoring && monitored.poll)) {
+        return __real_poll(fds, nfds, timeout);
+    }
+    stats.poll.called++;
+    stats.poll.last_params = (struct params_poll_t) {
+        .fds_ptr = fds,
+        .nfds = nfds,
+        .timeout = timeout,
+        .fds_copy = NULL
+    };
+    if (FAIL(failures.poll)) {
+        failures.poll = NEXT(failures.poll);
+        errno = failures.poll_errno;
+        return (stats.poll.last_return = failures.poll_ret);
+    }
+    failures.poll = NEXT(failures.poll);
+    int ret = -2;
+    ret = __real_poll(fds, nfds, timeout);
+    if (! (ret == -1 && errno == EFAULT)) {
+        struct pollfd *tmp = malloc(nfds * sizeof(struct pollfd));
+        if (tmp) {
+            memcpy(fds, tmp, nfds * sizeof(struct pollfd));
+            stats.poll.last_params.fds_copy = tmp;
+        }
+    }
+    return ret;
+}
+
 ssize_t __wrap_recv(int sockfd, void *buf, size_t len, int flags)
 {
     if (!(wrap_monitoring && monitored.recv)) {
@@ -244,6 +278,34 @@ ssize_t __wrap_recvmsg(int sockfd, struct msghdr *msg, int flags)
     return ret;
 }
 
+int __wrap_select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval *timeout)
+{
+    if (!(wrap_monitoring && monitored.select)) {
+        return __real_select(nfds, readfds, writefds, exceptfds, timeout);
+    }
+    stats.select.called++;
+    stats.select.last_params = (struct params_select_t) {
+        .nfds = nfds,
+        .readfds_ptr = readfds,
+        .writefds_ptr = writefds,
+        .exceptfds_ptr = exceptfds,
+        .timeout_ptr = timeout,
+        .readfds = *readfds, // FIXME may cause a segfault if the student passed garbage
+        .writefds = *writefds,
+        .exceptfds = *exceptfds,
+        .timeout = *timeout
+    };
+    if (FAIL(failures.select)) {
+        failures.select = NEXT(failures.select);
+        errno = failures.select_errno;
+        return (stats.select.last_return = failures.select_ret);
+    }
+    failures.select = NEXT(failures.select);
+    int ret = -1;
+    ret = __real_select(nfds, readfds, writefds, exceptfds, timeout);
+    return ret;
+}
+
 ssize_t __wrap_send(int sockfd, const void *buf, size_t len, int flags)
 {
     if (!(wrap_monitoring && monitored.send)) {
@@ -325,6 +387,27 @@ ssize_t __wrap_sendmsg(int sockfd, const struct msghdr *msg, int flags)
     return ret;
 }
 
+int __wrap_shutdown(int sockfd, int how)
+{
+    if (!(wrap_monitoring && monitored.shutdown)) {
+        return __real_shutdown(sockfd, how);
+    }
+    stats.shutdown.called++;
+    stats.shutdown.last_params = (struct params_shutdown_t) {
+        .sockfd = sockfd,
+        .how = how
+    };
+    if (FAIL(failures.shutdown)) {
+        failures.shutdown = NEXT(failures.shutdown);
+        errno = failures.shutdown_errno;
+        return (stats.shutdown.last_return = failures.shutdown_ret);
+    }
+    failures.shutdown = NEXT(failures.shutdown);
+    int ret = -1;
+    ret = __real_shutdown(sockfd, how);
+    return ret;
+}
+
 int __wrap_socket(int domain, int type, int protocol)
 {
     if (!(wrap_monitoring && monitored.socket)) {
@@ -353,14 +436,17 @@ void reinit_network_socket_stats()
     memset(&(stats.bind), 0, sizeof(struct stats_bind_t));
     memset(&(stats.connect), 0, sizeof(struct stats_connect_t));
     memset(&(stats.listen), 0, sizeof(struct stats_listen_t));
+    memset(&(stats.poll), 0, sizeof(stats.poll));
     memset(&(stats.recv), 0, sizeof(struct stats_recv_t));
     memset(&(stats.recvfrom), 0, sizeof(struct stats_recvfrom_t));
     memset(&(stats.recvmsg), 0, sizeof(struct stats_recvmsg_t));
     memset(&(stats.recv_all), 0, sizeof(struct stats_recv_all_t));
+    memset(&(stats.select), 0, sizeof(stats.select));
     memset(&(stats.send), 0, sizeof(struct stats_send_t));
     memset(&(stats.sendto), 0, sizeof(struct stats_sendto_t));
     memset(&(stats.sendmsg), 0, sizeof(struct stats_sendmsg_t));
     memset(&(stats.send_all), 0, sizeof(struct stats_send_all_t));
+    memset(&(stats.shutdown), 0, sizeof(stats.shutdown));
     memset(&(stats.socket), 0, sizeof(struct stats_socket_t));
 }
 

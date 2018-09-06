@@ -96,6 +96,23 @@ struct stats_listen_t {
 
 
 /**
+ * Structures for poll
+ */
+struct params_poll_t {
+    struct pollfd *fds_ptr;
+    unsigned long int nfds; // Strictly speaking, this is a nfds_t, but is is at least an unsigned long int.
+    int timeout;
+    struct pollfd *fds_copy;
+};
+
+struct stats_poll_t {
+    int called;
+    struct params_poll_t last_params;
+    int last_return;
+};
+
+
+/**
  * Structures for recv, recvfrom, recvmsg.
  */
 struct params_recv_t {
@@ -147,6 +164,29 @@ struct stats_recv_all_t {
 
 
 /**
+ * Structures for select.
+ */
+
+struct params_select_t {
+    int nfds;
+    fd_set *readfds_ptr;
+    fd_set *writefds_ptr;
+    fd_set *exceptfds_ptr;
+    struct timeval *timeout_ptr;
+    fd_set readfds;
+    fd_set writefds;
+    fd_set exceptfds;
+    struct timeval timeout;
+};
+
+struct stats_select_t {
+    int called;
+    struct params_select_t last_params;
+    int last_return;
+};
+
+
+/**
  * Structures for send, sendto and sendmsg.
  */
 struct params_send_t {
@@ -188,6 +228,22 @@ struct stats_sendmsg_t {
 };
 struct stats_send_all_t {
     int called; // Should be incremented each time we increment another one.
+};
+
+
+/**
+ * Structures for shutdown.
+ */
+
+struct params_shutdown_t {
+    int sockfd;
+    int how;
+};
+
+struct stats_shutdown_t {
+    int called;
+    struct params_shutdown_t last_params;
+    int last_return;
 };
 
 

@@ -14,6 +14,7 @@
 #include "wrap_mutex.h"
 #include "wrap_network_dns.h"
 #include "wrap_network_socket.h"
+#include "wrap_network_inet.h"
 #include "wrap_sleep.h"
 
 // Basic structures for system call wrapper
@@ -52,13 +53,21 @@ struct wrap_monitor_t {
   bool bind;
   bool connect;
   bool listen;
+  bool poll;
   bool recv;
   bool recvfrom;
   bool recvmsg;
+  bool select;
   bool send;
   bool sendto;
   bool sendmsg;
+  bool shutdown;
   bool socket;
+
+  bool htons;
+  bool ntohs;
+  bool htonl;
+  bool ntohl;
 };
 
 #define MONITOR_ALL_RECV(m, v) do { \
@@ -67,6 +76,10 @@ struct wrap_monitor_t {
 
 #define MONITOR_ALL_SEND(m, v) do { \
   m.send = m.sendto = m.sendmsg = v; \
+} while (0);
+
+#define MONITOR_ALL_BYTEORDER(m, v) do { \
+  m.ntohs = m.htons = m.ntohl = m.htonl = v; \
 } while (0);
 
 #define MAX_LOG 1000
@@ -195,6 +208,10 @@ struct wrap_fail_t {
   int listen_ret;
   int listen_errno;
 
+  uint32_t poll;
+  int poll_ret;
+  int poll_errno;
+
   uint32_t recv;
   int recv_ret;
   int recv_errno;
@@ -206,6 +223,10 @@ struct wrap_fail_t {
   uint32_t recvmsg;
   int recvmsg_ret;
   int recvmsg_errno;
+
+  uint32_t select;
+  int select_ret;
+  int select_errno;
 
   uint32_t send;
   int send_ret;
@@ -219,9 +240,15 @@ struct wrap_fail_t {
   int sendmsg_ret;
   int sendmsg_errno;
 
+  uint32_t shutdown;
+  int shutdown_ret;
+  int shutdown_errno;
+
   uint32_t socket;
   int socket_ret;
   int socket_errno;
+
+  // byte-order functions (htonl...) cannot fail
 } ;
 
 
@@ -256,15 +283,23 @@ struct wrap_stats_t {
   struct stats_bind_t bind;
   struct stats_connect_t connect;
   struct stats_listen_t listen;
+  struct stats_poll_t poll;
   struct stats_recv_t recv;
   struct stats_recvfrom_t recvfrom;
   struct stats_recvmsg_t recvmsg;
   struct stats_recv_all_t recv_all;
+  struct stats_select_t select;
   struct stats_send_t send;
   struct stats_sendto_t sendto;
   struct stats_sendmsg_t sendmsg;
   struct stats_send_all_t send_all;
+  struct stats_shutdown_t shutdown;
   struct stats_socket_t socket;
+
+  struct stats_htons_t htons;
+  struct stats_ntohs_t ntohs;
+  struct stats_htonl_t htonl;
+  struct stats_ntohl_t ntohl;
 };
 
 #endif // __WRAP_H_

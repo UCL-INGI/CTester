@@ -3,8 +3,9 @@ EXEC=tests
 LDFLAGS=-lcunit -lm -lpthread -ldl -rdynamic
 SRC=$(sort $(wildcard *.c)) $(sort $(wildcard CTester/*.c))
 OBJ=$(SRC:.c=.o)
-CFLAGS = -Wall -Werror -Wextra -Wshadow -DC99 -std=gnu99 -ICTester 
-CFLAGS += -D_POSIX_C_SOURCE=200112L -D_DEFAULT_SOURCE
+CFLAGS = -Wall -Werror -Wextra -Wshadow
+CFLAGS += -std=gnu99
+CFLAGS += -ICTester # to include the folder.
 DEBUGFLAGS = -g -Wno-unused-variable -Wno-unused-parameter
 OTHERFLAGS = -fstack-protector-all -D_FORTIFY_SOURCE=2 -fno-omit-frame-pointer
 #CFLAGS += $(DEBUGFLAGS)
@@ -15,7 +16,8 @@ WRAP += -Wl,-wrap=getpid
 WRAP += -Wl,-wrap=malloc -Wl,-wrap=free -Wl,-wrap=realloc -Wl,-wrap=calloc
 WRAP += -Wl,-wrap=pthread_mutex_lock -Wl,-wrap=pthread_mutex_unlock -Wl,-wrap=pthread_mutex_trylock -Wl,-wrap=pthread_mutex_init -Wl,-wrap=pthread_mutex_destroy
 WRAP += -Wl,-wrap=getaddrinfo -Wl,-wrap=getnameinfo -Wl,-wrap=freeaddrinfo -Wl,-wrap=gai_strerror
-WRAP += -Wl,-wrap=accept -Wl,-wrap=bind -Wl,-wrap=connect -Wl,-wrap=listen -Wl,-wrap=recv -Wl,-wrap=recvfrom -Wl,-wrap=recvmsg -Wl,-wrap=send -Wl,-wrap=sendto -Wl,-wrap=sendmsg -Wl,-wrap=socket
+WRAP += -Wl,-wrap=accept -Wl,-wrap=bind -Wl,-wrap=connect -Wl,-wrap=listen -Wl,-wrap=poll -Wl,-wrap=recv -Wl,-wrap=recvfrom -Wl,-wrap=recvmsg -Wl,-wrap=select -Wl,-wrap=send -Wl,-wrap=sendto -Wl,-wrap=sendmsg -Wl,-wrap=shutdown -Wl,-wrap=socket
+WRAP += -Wl,-wrap=htons -Wl,-wrap=ntohs -Wl,-wrap=htonl -Wl,-wrap=ntohl
 WRAP += -Wl,-wrap=sleep
 
 all: $(EXEC)
