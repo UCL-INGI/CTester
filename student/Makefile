@@ -4,8 +4,10 @@ LDFLAGS=-lcunit -lm -lpthread -ldl -rdynamic
 SRC=$(sort $(wildcard *.c)) $(sort $(wildcard CTester/*.c))
 OBJ=$(SRC:.c=.o)
 CFLAGS = -Wall -Werror -Wextra -Wshadow
-CFLAGS += -std=gnu99
+CFLAGS += -std=gnu99 # was gnu99 FIXME
+#CFLAGS += -DC99 # Don't know why TODO
 CFLAGS += -ICTester # to include the folder.
+#CFLAGS += -D_POSIX_C_SOURCE=200112L -D_DEFAULT_SOURCE
 DEBUGFLAGS = -g -Wno-unused-variable -Wno-unused-parameter
 OTHERFLAGS = -fstack-protector-all -D_FORTIFY_SOURCE=2 -fno-omit-frame-pointer
 #CFLAGS += $(DEBUGFLAGS)
