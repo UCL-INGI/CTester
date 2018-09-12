@@ -43,4 +43,6 @@ struct wrap_log_t logs;
  */
 int stdout_cpy, stderr_cpy;
 
+FILE *fstdout, *fstderr;
+
 sigjmp_buf segv_jmp;

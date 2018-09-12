@@ -46,6 +46,10 @@ int true_stdout;
  */
 int pipe_stderr[2], usr_pipe_stderr[2];
 int pipe_stdout[2], usr_pipe_stdout[2];
+/**
+ * File stream objects used to print on true_stdout and true_stderr while in sandbox.
+ */
+extern FILE *fstdout, *fstderr;
 extern int stdout_cpy, stderr_cpy;
 struct itimerval it_val;
 
@@ -278,6 +282,8 @@ int run_tests(int argc, char *argv[], void *tests[], int nb_tests) {
     mallopt(M_CHECK_ACTION, 1); // don't abort if double free
     true_stderr = dup(STDERR_FILENO); // preparing a non-blocking pipe for stderr
     true_stdout = dup(STDOUT_FILENO); // preparing a non-blocking pipe for stderr
+    fstdout = fdopen(true_stdout, "w"); // We can't just copy-paster stdout and stderr
+    fstderr = fdopen(true_stderr, "w"); // as these structures use the file descriptor
 
     int *pipes[] = {pipe_stderr, pipe_stdout, usr_pipe_stdout, usr_pipe_stderr};
     for(int i=0; i < 4; i++) { // Configuring pipes to be non-blocking
