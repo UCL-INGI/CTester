@@ -268,40 +268,5 @@ struct stats_socket_t {
  */
 void reinit_network_socket_stats();
 
-//int set_recv_source(int fd, int sourcefd);
-
-//int set_recv_buffer(int fd, void *buf, size_t buflen);
-
-//int set_recv_policy(int fd, struct recv_policy_t *policy);
-// Should define at some point the recv_policy_t structure.
-
-struct recv_bufchunk_t {
-    uint32_t interval; // Time interval (in microseconds) to wait before the chunk can be received. Should be no more than 1000000. Relative to each other.
-    const void *buf; // Buffer of data to be read.
-    size_t buflen; // Length of this buffer
-};
-
-#define RECV_REAL_INTERVAL 1 // Real-time interval: if the student waits a lot, he won't see the interval
-#define RECV_AFTER_INTERVAL 2 // At least interval µs after emptying the chunk
-#define RECV_BEFORE_INTERVAL 3 // At least interval µs before reading a new chunk
-
-/**
- * Important:
- * There are two ways (mode) to interpret the interval value:
- * - the first possibility (RECV_REAL_INTERVAL) tracks the time interval in real time, which means that the student may not see any actual time interval if it waits long enough.
- * - the second possibility (RECV_AFTER_INTERVAL) only enforce the time interval between the end of a call that emptied a chunk and the actual read of the following call, which will start a new chunk. If the student waits enough, it may not see it.
- * - the third possibility (RECV_BEFORE_INTERVAL) imposes an actual wait each time the student calls recv and the chunk has not been read before (if it has, then it won't wait, but it will read only one chunk). The interval is enforced between the start of this call and the actual read of this same call. The student cannot ignore it.
- * Be careful to select the correct mode of operation, otherwise it won't work very much.
- */
-struct recv_buffer_t {
-    int mode; // The mode of interpretation of interval
-    size_t nchunks; // Number of chunks
-    const struct recv_bufchunk_t *chunks; // Table of chunks
-};
-
-/**
- * Returns -1 if malloc error, -2 if argument error (buf->mode typically), 0 if fd was not present, and 1 if it was already present.
- */
-int set_recv_data(int fd, const struct recv_buffer_t *buf);
 
 #endif // __WRAP_NETWORK_SOCKET_H__

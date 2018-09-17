@@ -6,6 +6,7 @@
 #include <unistd.h>
 
 #include "wrap.h"
+#include "read_write.h"
 
 int __real_open(const char *pathname, int flags, mode_t mode);
 int __real_creat(const char *pathname, mode_t mode);
@@ -24,6 +25,21 @@ extern struct wrap_stats_t stats;
 extern struct wrap_monitor_t monitored;
 extern struct wrap_fail_t failures;
 extern struct wrap_log_t logs;
+
+
+/**
+ * Auxiliary functions and structures for implementing partial-returns in read/write.
+ */
+extern bool fd_is_read_buffered(int fd);
+
+extern ssize_t read_handle_buffer(int fd, void *buf, size_t len, int flags);
+
+extern struct read_fd_table_t read_fd_table;
+
+
+/**
+ * Wrap functions.
+ */
 
 int __wrap_open(char *pathname, int flags, mode_t mode) {
 
@@ -95,7 +111,7 @@ int __wrap_close(int fd){
 
 }
 
-int __wrap_read(int fd, void *buf, size_t count){
+ssize_t __wrap_read(int fd, void *buf, size_t count){
 
   if(!wrap_monitoring || !monitored.read) {
     return __real_read(fd,buf,count); 
@@ -113,14 +129,19 @@ int __wrap_read(int fd, void *buf, size_t count){
   }
   failures.read=NEXT(failures.read);
   // did not fail
-  int ret=__real_read(fd,buf,count);
+  int ret = 0;
+  if (fd_is_read_buffered(fd)) {
+    ret = read_handle_buffer(fd, buf, count, 0);
+  } else {
+    ret = __real_read(fd, buf, count);
+  }
   stats.read.last_return=ret;
   return ret;
 
 }
 
 
-int __wrap_write(int fd, void *buf, size_t count){
+ssize_t __wrap_write(int fd, void *buf, size_t count){
 
   if(!wrap_monitoring || !monitored.write) {
     return __real_write(fd,buf,count); 

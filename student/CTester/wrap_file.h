@@ -54,7 +54,7 @@ struct stats_close_t {
 struct params_read_t {
   int fd;
   void *buf;
-  ssize_t count;
+  size_t count;
 }; 
 
 // basic statistics for the utilisation of the read system call
@@ -62,13 +62,13 @@ struct params_read_t {
 struct stats_read_t {
   int called;  // number of times the read system call has been issued
   struct params_read_t last_params; // parameters for the last call issued
-  int last_return;   // return value of the last read call issued
+  ssize_t last_return;   // return value of the last read call issued
 };
 
 struct params_write_t {
   int fd;
   void *buf;
-  ssize_t count;
+  size_t count;
 }; 
 
 // basic statistics for the utilisation of the write system call
@@ -76,7 +76,7 @@ struct params_write_t {
 struct stats_write_t {
   int called;  // number of times the write system call has been issued
   struct params_read_t last_params; // parameters for the last call issued
-  int last_return;   // return value of the last write call issued
+  ssize_t last_return;   // return value of the last write call issued
 };
 
 struct params_stat_t {
