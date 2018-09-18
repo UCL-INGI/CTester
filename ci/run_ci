@@ -4,8 +4,6 @@ cd "$(dirname "$0")"
 shopt -s nullglob
 declare -a tests=(*/)
 shopt -u nullglob
-echo $tests
-echo "${#tests[@]}"
 
 exec_test() {
     mkdir env/

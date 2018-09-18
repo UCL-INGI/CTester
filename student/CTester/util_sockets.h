@@ -8,15 +8,20 @@
  * Currenly, they may be combined with any of them;
  * maybe we should exclude some combination.
  */
+// Self conflicting constants
 #define OK 0
 #define TOO_MUCH 1 // And the amount should follow
 #define TOO_FEW 2 // And the amount should follow
-#define NOT_SAME 4 // And the recvd tab should follow
-#define NOTHING_RECV 8
-#define RECV_ERROR 16
-#define SEND_ERROR 32
+#define RECV_ERROR 3 // Followed by value of errno.
+#define NOTHING_RECV 4
+// Left : 6-15
+// Or-ing constants
+#define SEND_ERROR 8 // To indicate the real type of error
+#define NOT_SAME_DATA 16 // Idealy, the recv'd tab should follow, preceded by its length, but not yet implemented
+#define NOT_SAME_ADDR 32 // The recv'd address should follow, preceded by its length (socklen_t)
 #define EXIT_PROCESS 64 // The child process exits: beware of SIGPIPE!
 #define EXTEND_MSG 128 // Next octet gives the status
+
 #define U8SZ (sizeof(uint8_t))
 #define U16SZ (sizeof(uint16_t))
 
@@ -91,6 +96,8 @@ struct cs_network_chunk {
 struct cs_network_transaction {
     struct cs_network_chunk *chunks;
     size_t nchunks;
+    struct sockaddr *addr;
+    socklen_t addrlen;
 };
 
 /**

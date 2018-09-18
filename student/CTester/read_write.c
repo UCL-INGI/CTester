@@ -339,5 +339,7 @@ int set_write_buffer(int fd, const struct write_buffer_t *buf)
 {
     // TODO implement this functions and the related functions.
     // Currently not used so this is not a problem
+    (void) fd;
+    (void) buf;
     return 0;
 }
