@@ -1,3 +1,6 @@
+#ifndef __CTESTER_MAIN_H__
+#define __CTESTER_MAIN_H__
+
 #include <sys/mman.h>
 #include <CUnit/CUnit.h>
 #include <setjmp.h>
@@ -46,3 +49,6 @@ int stdout_cpy, stderr_cpy;
 FILE *fstdout, *fstderr;
 
 sigjmp_buf segv_jmp;
+
+#endif // __CTESTER_MAIN_H__
+
