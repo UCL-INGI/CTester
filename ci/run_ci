@@ -1,10 +1,5 @@
 #!/bin/bash
 
-cd "$(dirname "$0")"
-shopt -s nullglob
-declare -a tests=(*/)
-shopt -u nullglob
-
 exec_test() {
     mkdir env/
     cp $1/* env/
@@ -35,6 +30,24 @@ exec_test() {
     rm -rf env
     return 0
 }
+
+cd "$(dirname "$0")"
+
+if [ "$#" -eq "1" ]; then
+    # Execute only the specified test
+    echo -e "##### Executing test" $1
+    exec_test $1
+    if [ $? -eq '1' ]; then
+        echo -e "##### Successful test"
+        exit 0
+    else
+        exit 1
+    fi
+fi
+
+shopt -s nullglob
+declare -a tests=(*/)
+shopt -u nullglob
 
 if ((${#tests[@]} == 0)); then
     echo -e "No tests found!" >&2

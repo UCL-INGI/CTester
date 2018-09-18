@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+#include <time.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <errno.h>
@@ -68,20 +69,6 @@ struct read_fd_table_t {
     struct read_item *items;
 } read_fd_table;
 
-struct write_item {
-    int fd; // the file descriptor this structure applies to.
-    const struct write_buffer_t *buf; // Provided write_buffer_t structure
-    unsigned int chunk_id; // Current chunk, or next chunk to be received
-    size_t bytes_written; // Number of bytes of the current chunk already written
-    struct timespec last_time; // Time of the end of the last call of write on this fd/socket
-    int64_t interval; // In real-time mode (READ_WRITE_REAL_INTERVAL), read wait interval for the current chunk.
-};
-
-struct write_fd_table_t {
-    size_t n;
-    struct write_item *items;
-} write_fd_table;
-
 struct read_item *read_get_entry(int fd)
 {
     for (unsigned int i = 0; i < read_fd_table.n; i++) {
@@ -117,7 +104,7 @@ int read_remove_entry(int fd)
             found = true;
             if (i < read_fd_table.n - 1) {
                 struct read_item *dest = &(read_fd_table.items[i]);
-                memmove(dest, dest + 1, read_fd_table.n - i - 1);
+                memmove(dest, dest + 1, (read_fd_table.n - i - 1) * sizeof(struct read_item));
                 memset(&(read_fd_table.items[read_fd_table.n-1]), 0, sizeof(struct read_item));
                 // This is not really a problem that we have a useless thing at the end
             }
@@ -282,6 +269,7 @@ void reinit_read_fd_table()
 {
     // As we're not responsible to clean up all the recv_buffer_t, we can just free everything up
     free(read_fd_table.items);
+    read_fd_table.items = NULL;
     read_fd_table.n = 0;
 }
 
@@ -335,11 +323,3 @@ int set_read_data(int fd, const struct read_buffer_t *buf)
     return (already_there ? 1 : 0);
 }
 
-int set_write_buffer(int fd, const struct write_buffer_t *buf)
-{
-    // TODO implement this functions and the related functions.
-    // Currently not used so this is not a problem
-    (void) fd;
-    (void) buf;
-    return 0;
-}

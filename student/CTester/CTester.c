@@ -260,8 +260,12 @@ void __real_exit(int status);
  * If we accept the possibility of a student calling exit, then it is better
  * to explicitly raise the segfault in order to have a less-undefined behaviour.
  */
-void __wrap_exit(int status) {
-    (void)status;
+void __wrap_exit(int status)
+{
+    if (!(wrap_monitoring)) {
+        __real_exit(status);
+    } // else : monitored and in sandbox
+
     raise(SIGSEGV); // raise SIGSEGV if it comes from the student.
     // TODO add code so that the student's code can actually exit
 }

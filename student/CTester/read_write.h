@@ -19,7 +19,6 @@
 
 #include <stddef.h>
 #include <stdint.h>
-#include <time.h>
 
 /**
  * Functions and structures for manipulating read and write system calls,
@@ -146,7 +145,7 @@ struct read_bufchunk_t {
 struct read_buffer_t {
     int mode; // The mode of interpretation of interval
     size_t nchunks; // Number of chunks
-    const struct read_bufchunk_t *chunks; // Table of chunks
+    struct read_bufchunk_t *chunks; // Table of chunks
 };
 
 /**
@@ -192,7 +191,7 @@ struct write_buffer_t {
  * Currently, it does nothing other than returning zero; functionnalities
  * will be added when needed.
  */
-int set_write_buffer(int fd, const struct write_buffer_t *buf);
+//int set_write_buffer(int fd, const struct write_buffer_t *buf);
 
 /**
  * Removes all the association between fd's and read_buffer_t's that have been
