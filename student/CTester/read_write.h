@@ -194,38 +194,6 @@ void free_partial_read_buffer(struct read_buffer_t *buf);
 void free_read_buffer(struct read_buffer_t *buf);
 
 /**
- * Chunk of buffer. The write operation waits for {interval} before allowing
- * the write/send to use this buffer, if the previous chunk has been filled.
- * The fields are similar to the read_bufchunk_t structure.
- */
-struct write_bufchunk_t {
-    uint32_t interval;
-    void *buf;
-    size_t buflen;
-};
-
-/**
- * Buffer for the write/send operations. It allows for partial write and send
- * of data on the provided file descriptor, as would happen with send over
- * a socket, or with write over a buffered file (e.g. a pipe). The structure
- * and its fields are pretty similar to the read_buffer_t structure. The only
- * difference is that currently, the only planned mode supported is
- * READ_WRITE_BEFORE_INTERVAL.
- */
-struct write_buffer_t {
-    int mode; // The mode of interpretation of interval
-    size_t nchunks; // Number of chunks
-    const struct write_bufchunk_t *chunks; // Table of chunks
-};
-
-/**
- * Sets the buffer for the write/send operation, for simulating partial return.
- * Currently, it does nothing other than returning zero; functionnalities
- * will be added when needed.
- */
-//int set_write_buffer(int fd, const struct write_buffer_t *buf);
-
-/**
  * Removes all the association between fd's and read_buffer_t's that have been
  * previously set. It doesn't free the structures, however.
  */
