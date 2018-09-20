@@ -1,5 +1,9 @@
 #!/bin/bash
 
+_term() {
+    kill -TERM "$child" 2>/dev/null
+}
+
 exec_test() {
     mkdir env/
     cp $1/* env/
@@ -9,7 +13,9 @@ exec_test() {
 
     make
     echo -e "##### $1: executing ...\n"
-    ./tests
+    ./tests &
+    child=$!
+    wait "$child"
 
     if [ -f ./results.txt ]; then
         cmp --silent results.txt expected_results.txt
@@ -32,6 +38,8 @@ exec_test() {
 }
 
 cd "$(dirname "$0")"
+
+trap _term SIGTERM
 
 if [ "$#" -eq "1" ]; then
     # Execute only the specified test

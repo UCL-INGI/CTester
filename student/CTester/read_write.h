@@ -104,14 +104,14 @@
  * When simulating a partial-return read/recv, this is the fragments of data
  * that the caller receives sequentially (if it asks for the full fragment).
  * Fields:
- * - interval: time interval (in microseconds) to wait before the chunk can be
- *   received. Should be no more than 1 million. Relative to the arrival
+ * - interval: time interval (in milliseconds) to wait before the chunk can be
+ *   received. Should be no more than 1 thousand. Relative to the arrival
  *   of the previous chunk, and thus relative.
  * - buf : chunk of data to be read.
  * - buflen: length of this buffer.
  */
 struct read_bufchunk_t {
-    uint32_t interval;
+    int interval;
     const void *buf;
     size_t buflen;
 };
@@ -160,6 +160,38 @@ struct read_buffer_t {
  * - -2 if argument error (typically buf->mode)
  */
 int set_read_data(int fd, const struct read_buffer_t *buf);
+
+/**
+ * Fills in buf with a read_buffer_t structure, from data (a continuous area
+ * of memory), the list of offsets and the list of intervals. Allocates all
+ * the structures needed.
+ * Returns 0 if success, -1 in case of error (memory).
+ */
+int create_partial_read_buffer(void *data, size_t n, off_t *offsets, int *intervals, struct read_buffer_t *buf);
+
+/**
+ * Creates a read_buffer_t structure from data (a continuous area of memory),
+ * the provided mode, the list of offsets and the list of intervals. Allocates
+ * all the structures needed.
+ * Returns the created buffer, or NULL in case of error.
+ */
+struct read_buffer_t *create_read_buffer(void *data, size_t n, off_t *offsets, int *intervals, int mode);
+
+/**
+ * Deallocates the provided read buffer. This doesn't free the actual data
+ * returned by successive calls of recv and read, doesn't free buf itself
+ * (so that a stack-allocated read_buffer_t can be passed on) and doesn't
+ * reset the mode of the read_buffer_t. In short, it only frees up buf->chunks.
+ * This is the inverse of create_partial_read_buffer.
+ */
+void free_partial_read_buffer(struct read_buffer_t *buf);
+
+/**
+ * Deallocates the provided read buffer. This doesn't free the actual data
+ * returned by successive calls of recv and read. Also frees buf itself,
+ * so no `free(buf)` is needed after this call.
+ */
+void free_read_buffer(struct read_buffer_t *buf);
 
 /**
  * Chunk of buffer. The write operation waits for {interval} before allowing
