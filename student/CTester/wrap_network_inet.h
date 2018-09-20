@@ -55,5 +55,11 @@ struct stats_ntohl_t {
 };
 
 
+/**
+ * Utility functions and structures
+ */
+void reinit_network_inet_stats();
+
+
 #endif // __WRAP_NETWORK_INET_H_
 

@@ -13,6 +13,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <string.h>
+
 #include "wrap.h"
 
 uint16_t __real_htons(uint16_t hostshort);
@@ -66,5 +68,15 @@ uint32_t __wrap_ntohl(uint32_t netlong)
         stats.ntohl.last_return = ret;
     }
     return ret;
+}
+
+// Additionnal functions
+
+void reinit_network_inet_stats()
+{
+    memset(&(stats.htons), 0, sizeof(stats.htons));
+    memset(&(stats.ntohs), 0, sizeof(stats.ntohs));
+    memset(&(stats.htonl), 0, sizeof(stats.htonl));
+    memset(&(stats.ntohl), 0, sizeof(stats.ntohl));
 }
 
