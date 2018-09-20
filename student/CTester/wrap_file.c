@@ -4,6 +4,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <string.h>
 
 #include "wrap.h"
 #include "read_write.h"
@@ -258,3 +259,16 @@ off_t __wrap_lseek(int fd, off_t offset, int whence) {
   stats.lseek.last_return=ret;
   return ret;
 }
+
+void reinit_file_stats()
+{
+  memset(&(stats.open), 0, sizeof(stats.open));
+  memset(&(stats.creat), 0, sizeof(stats.creat));
+  memset(&(stats.close), 0, sizeof(stats.close));
+  memset(&(stats.read), 0, sizeof(stats.read));
+  memset(&(stats.write), 0, sizeof(stats.write));
+  memset(&(stats.stat), 0, sizeof(stats.stat));
+  memset(&(stats.fstat), 0, sizeof(stats.fstat));
+  memset(&(stats.lseek), 0, sizeof(stats.lseek));
+}
+

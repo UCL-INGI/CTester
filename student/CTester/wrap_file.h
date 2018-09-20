@@ -123,4 +123,6 @@ struct stats_lseek_t {
   int last_return;   // return value of the last lseek call issued
 };
 
+void reinit_file_stats();
+
 #endif // __WRAP_FILE_H_
