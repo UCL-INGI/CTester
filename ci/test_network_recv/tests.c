@@ -156,26 +156,26 @@ void test_fragmented_recv()
 		.interval = 0
 	};
 	int fd1 = 17, fd2 = 42, fd3 = 0;
-	CU_ASSERT_EQUAL(set_read_data(fd1, &rbuf1), 0);
+	CU_ASSERT_EQUAL(set_read_buffer(fd1, &rbuf1), 0);
 	CU_ASSERT_EQUAL(read_fd_table.n, 1);
 	CU_ASSERT_TRUE(fd_is_read_buffered(fd1));
-	CU_ASSERT_EQUAL(set_read_data(fd2, NULL), 0);
+	CU_ASSERT_EQUAL(set_read_buffer(fd2, NULL), 0);
 	CU_ASSERT_EQUAL(read_fd_table.n, 1);
 	CU_ASSERT_TRUE(fd_is_read_buffered(fd1));
 	CU_ASSERT_FALSE(fd_is_read_buffered(fd2));
-	CU_ASSERT_EQUAL(set_read_data(fd1, NULL), 1);
+	CU_ASSERT_EQUAL(set_read_buffer(fd1, NULL), 1);
 	CU_ASSERT_EQUAL(read_fd_table.n, 0);
 	CU_ASSERT_FALSE(fd_is_read_buffered(fd1));
 	CU_ASSERT_FALSE(fd_is_read_buffered(fd2));
 
 	struct timespec beforets1, afterts1, beforets2, afterts2, beforets3, afterts3;
 	CU_ASSERT_EQUAL_FATAL(clock_gettime(CLOCK_REALTIME, &beforets1), 0);
-	CU_ASSERT_EQUAL_FATAL(set_read_data(fd1, &rbuf1), 0);
+	CU_ASSERT_EQUAL_FATAL(set_read_buffer(fd1, &rbuf1), 0);
 	CU_ASSERT_EQUAL_FATAL(clock_gettime(CLOCK_REALTIME, &afterts1), 0);
 	CU_ASSERT_EQUAL(read_fd_table.n, 1);
 	CU_ASSERT_TRUE(fd_is_read_buffered(fd1));
 
-	CU_ASSERT_EQUAL(set_read_data(fd2, &rbuf1), 0);
+	CU_ASSERT_EQUAL(set_read_buffer(fd2, &rbuf1), 0);
 	CU_ASSERT_TRUE(fd_is_read_buffered(fd2));
 	CU_ASSERT_EQUAL(read_fd_table.n, 2);
 	CU_ASSERT_EQUAL(read_fd_table.items[0].buf, &rbuf1);
@@ -184,7 +184,7 @@ void test_fragmented_recv()
 	CU_ASSERT_EQUAL(read_fd_table.items[1].fd, fd2);
 
 	CU_ASSERT_EQUAL_FATAL(clock_gettime(CLOCK_REALTIME, &beforets3), 0);
-	CU_ASSERT_EQUAL(set_read_data(fd3, &rbuf3), 0);
+	CU_ASSERT_EQUAL(set_read_buffer(fd3, &rbuf3), 0);
 	CU_ASSERT_EQUAL_FATAL(clock_gettime(CLOCK_REALTIME, &afterts3), 0);
 	CU_ASSERT_EQUAL(read_fd_table.n, 3);
 	CU_ASSERT_TRUE(fd_is_read_buffered(fd3));
@@ -195,17 +195,17 @@ void test_fragmented_recv()
 	CU_ASSERT_EQUAL(read_fd_table.items[2].buf, &rbuf3);
 	CU_ASSERT_EQUAL(read_fd_table.items[2].fd, fd3);
 
-	CU_ASSERT_EQUAL(set_read_data(fd2, &rbuf2), 1);
+	CU_ASSERT_EQUAL(set_read_buffer(fd2, &rbuf2), 1);
 	CU_ASSERT_EQUAL(read_fd_table.n, 3);
 	CU_ASSERT_TRUE(fd_is_read_buffered(fd2));
-	CU_ASSERT_EQUAL(set_read_data(fd2, NULL), 1);
+	CU_ASSERT_EQUAL(set_read_buffer(fd2, NULL), 1);
 	CU_ASSERT_EQUAL(read_fd_table.n, 2);
 	CU_ASSERT_FALSE(fd_is_read_buffered(fd2));
-	CU_ASSERT_EQUAL(set_read_data(fd2, NULL), 0);
+	CU_ASSERT_EQUAL(set_read_buffer(fd2, NULL), 0);
 	CU_ASSERT_EQUAL(read_fd_table.n, 2);
 	CU_ASSERT_FALSE(fd_is_read_buffered(fd2));
 	CU_ASSERT_EQUAL(clock_gettime(CLOCK_REALTIME, &beforets2), 0);
-	CU_ASSERT_EQUAL(set_read_data(fd2, &rbuf2), 0);
+	CU_ASSERT_EQUAL(set_read_buffer(fd2, &rbuf2), 0);
 	CU_ASSERT_EQUAL(clock_gettime(CLOCK_REALTIME, &afterts2), 0);
 	CU_ASSERT_EQUAL(read_fd_table.n, 3);
 	CU_ASSERT_TRUE(fd_is_read_buffered(fd1));
@@ -233,7 +233,7 @@ void test_fragmented_recv()
 	fprintf(stderr, "%lld %lld\n", (long long)read_fd_table.items[1].interval, (long long)rbuf3.chunks[0].interval);
 	CU_ASSERT_EQUAL(read_fd_table.items[1].interval, rbuf3.chunks[0].interval * MILLION);
 	CU_ASSERT_TRUE(timespec_is_between(&(read_fd_table.items[1].last_time), &beforets3, &afterts3));
-	CU_ASSERT_EQUAL(set_read_data(fd3, NULL), 1); // We don't need it
+	CU_ASSERT_EQUAL(set_read_buffer(fd3, NULL), 1); // We don't need it
 	CU_ASSERT_EQUAL(read_fd_table.n, 2);
 	// Correctly set up of the tests: done
 	// Now, all we have to do is recv the data :-)
@@ -273,7 +273,7 @@ void test_fragmented_recv_before()
 		CU_FAIL_FATAL("Memory");
 	}
 	int fd1 = 42;
-	int r = set_read_data(fd1, &rbuf1);
+	int r = set_read_buffer(fd1, &rbuf1);
 	if (r < 0) {
 		free(tab1);
 		free_partial_read_buffer(&rbuf1);
@@ -398,7 +398,7 @@ void test_fragmented_recv_after()
 		CU_FAIL_FATAL("Memory");
 	}
 	int fd1 = 42;
-	int r = set_read_data(fd1, &rbuf1);
+	int r = set_read_buffer(fd1, &rbuf1);
 	if (r < 0) {
 		free(tab1);
 		free_partial_read_buffer(&rbuf1);
@@ -521,7 +521,7 @@ void test_fragmented_recv_realtime()
 		CU_FAIL_FATAL("Memory");
 	}
 	int fd1 = 42;
-	int r = set_read_data(fd1, rbuf1);
+	int r = set_read_buffer(fd1, rbuf1);
 	if (r < 0) {
 		free(tab1);
 		free_read_buffer(rbuf1);
@@ -673,7 +673,7 @@ void test_fragmented_recv_realtime()
 		free_read_buffer(rbuf1);
 		CU_FAIL_FATAL("Memory");
 	}
-	r = set_read_data(fd1, rbuf1); // Again
+	r = set_read_buffer(fd1, rbuf1); // Again
 	CU_ASSERT_EQUAL(r, 1);
 	TS_ZERO(ts0);
 	TS_ZERO(ts1);
@@ -827,7 +827,7 @@ void test_fragmented_recv_realtime()
 		free(tab1);
 		free(rbuf1);
 	}
-	r = set_read_data(fd1, rbuf1);
+	r = set_read_buffer(fd1, rbuf1);
 	CU_ASSERT_EQUAL_FATAL(r, 1);
 	// TODO check time interval
 	TS_ZERO(tss1);

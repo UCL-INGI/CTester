@@ -159,7 +159,7 @@ struct read_buffer_t {
  * - -1 if malloc error
  * - -2 if argument error (typically buf->mode)
  */
-int set_read_data(int fd, const struct read_buffer_t *buf);
+int set_read_buffer(int fd, const struct read_buffer_t *buf);
 
 /**
  * Fills in buf with a read_buffer_t structure, from data (a continuous area

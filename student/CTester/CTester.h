@@ -41,6 +41,16 @@ struct wrap_monitor_t monitored;
 struct wrap_fail_t failures;
 struct wrap_log_t logs;
 
+void reinit_all_stats()
+{
+	memset(&stats, 0, sizeof(stats));
+}
+
+void reinit_all_monitored()
+{
+	memset(&monitored, 0, sizeof(monitored));
+}
+
 /**
  * Readable file descriptors that contain the student's code outputs.
  */
