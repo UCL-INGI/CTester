@@ -162,6 +162,20 @@ struct read_buffer_t {
 int set_read_buffer(int fd, const struct read_buffer_t *buf);
 
 /**
+ * Returns the amount of bytes read from the previously provided buffer
+ * for this file descriptor, or -1 if the file descriptor is not associated
+ * with a read_buffer.
+ */
+ssize_t get_bytes_read(int fd);
+
+/**
+ * Returns the chunk id currently set up for reading of the previously provided
+ * read buffer for this file descriptor, of -1 if there is no read_buffer
+ * associated with this file descriptor.
+ */
+int get_current_chunk_id(int fd);
+
+/**
  * Fills in buf with a read_buffer_t structure, from data (a continuous area
  * of memory), the list of offsets and the list of intervals. Allocates all
  * the structures needed.

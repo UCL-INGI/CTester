@@ -325,6 +325,31 @@ int set_read_buffer(int fd, const struct read_buffer_t *buf)
     return (already_there ? 1 : 0);
 }
 
+ssize_t get_bytes_read(int fd)
+{
+    //return -1;
+    struct read_item *cur = read_get_entry(fd);
+    if (cur == NULL)
+        return -1;
+    size_t bread = 0;
+    for (unsigned int i = 0; i < cur->chunk_id; i++) {
+        bread += cur->buf->chunks[i].buflen;
+    }
+    if (cur->chunk_id < cur->buf->nchunks) {
+        bread += cur->bytes_read;
+    }
+    return bread;
+}
+
+int get_current_chunk_id(int fd)
+{
+    return -1;
+    struct read_item *cur = read_get_entry(fd);
+    if (cur == NULL)
+        return -1;
+    return cur->chunk_id;
+}
+
 int create_partial_read_buffer(void *data, size_t n, off_t *offsets, int *intervals, struct read_buffer_t *buf)
 {
     buf->nchunks = n;
