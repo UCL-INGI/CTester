@@ -241,7 +241,6 @@ size_t read_handle_buffer_rt(struct read_item *cur, void *buf, size_t len, int f
 
 ssize_t read_handle_buffer(int fd, void *buf, size_t len, int flags)
 {
-    fprintf(stderr, "read_handle %d %p %u %d\n", fd, buf, (unsigned)len, flags);
     // TODO add support for MSG_OOB, MSG_PEEK and MSG_WAITALL to flags
     struct read_item *cur = read_get_entry(fd);
     if (cur == NULL) {
