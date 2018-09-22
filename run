@@ -37,7 +37,7 @@ def copy_CTester():
 
 def run():
     """Call the subprocess"""
-    p = subprocess.Popen(shlex.split("/bin/python3 run.py"))
+    p = subprocess.Popen(shlex.split("/bin/python3 run.py --no-use-fifty"))
     p.wait()
     return p.returncode
 

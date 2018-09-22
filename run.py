@@ -4,10 +4,11 @@
 # Auteurs : Mathieu Xhonneux, Anthony Gégo
 # Licence : GPLv3
 
-import subprocess, shlex, re, os, yaml
+import subprocess, shlex, re, os, yaml, sys
 from inginious import feedback, rst, input
 
 # Switch working directory to student/
+use_fifty = True if len(sys.argv) == 1 or (len(sys.argv) > 1 and "--use-fifty" in sys.argv) else False
 os.chdir("student")
 
 # Fetch and save the student code into a file for compilation
@@ -132,4 +133,5 @@ with open("../task.yaml", 'r') as stream:
 
 score = 100*score/(total if not total == 0 else 1)
 feedback.set_grade(score)
-feedback.set_global_result("success" if score >= 50 else "failed")
+global_result = "success" if (score >= 50 and use_fifty) or (score == 100 and not use_fifty) else "failed"
+feedback.set_global_result(global_result)
