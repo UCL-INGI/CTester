@@ -197,7 +197,8 @@ void sandbox_end()
 
     // ... and looking for a double free warning
     char buf[BUFSIZ];
-    int n;
+    memset(buf, 0, sizeof(buf));
+    ssize_t n = 0;
     while ((n = read(pipe_stdout[0], buf, BUFSIZ)) > 0) {
         write(usr_pipe_stdout[1], buf, n);
         write(STDOUT_FILENO, buf, n);
@@ -286,7 +287,7 @@ int run_tests(int argc, char *argv[], void *tests[], int nb_tests) {
     mallopt(M_CHECK_ACTION, 1); // don't abort if double free
     true_stderr = dup(STDERR_FILENO); // preparing a non-blocking pipe for stderr
     true_stdout = dup(STDOUT_FILENO); // preparing a non-blocking pipe for stderr
-    fstdout = fdopen(true_stdout, "w"); // We can't just copy-paster stdout and stderr
+    fstdout = fdopen(true_stdout, "w"); // We can't just copy-paste stdout and stderr
     fstderr = fdopen(true_stderr, "w"); // as these structures use the file descriptor
 
     int *pipes[] = {pipe_stderr, pipe_stdout, usr_pipe_stdout, usr_pipe_stderr};
@@ -338,24 +339,34 @@ int run_tests(int argc, char *argv[], void *tests[], int nb_tests) {
 
 
     /* initialize the CUnit test registry */
-    if (CUE_SUCCESS != CU_initialize_registry())
+    if (CUE_SUCCESS != CU_initialize_registry()) {
+        fprintf(stderr, "Error when initializing registry\n");
+        fclose(f_out);
         return CU_get_error();
+    }
 
     /* add a suite to the registry */
     pSuite = CU_add_suite("Suite_1", init_suite1, clean_suite1);
     if (NULL == pSuite) {
         CU_cleanup_registry();
+        fprintf(stderr, "Error when adding suite\n");
+        fclose(f_out);
         return CU_get_error();
     }
 
     for (int i=0; i < nb_tests; i++) {
         Dl_info  DlInfo;
-        if (dladdr(tests[i], &DlInfo) == 0)
+        if (dladdr(tests[i], &DlInfo) == 0) {
+            fprintf(stderr, "Error when preparing test (dladdr)\n");
+            fclose(f_out);
             return -EFAULT;
+        }
 
         CU_pTest pTest;
         if ((pTest = CU_add_test(pSuite, DlInfo.dli_sname, tests[i])) == NULL) {
                 CU_cleanup_registry();
+                fprintf(stderr, "Error when adding test\n");
+                fclose(f_out);
                 return CU_get_error();
         }
 
@@ -363,11 +374,17 @@ int run_tests(int argc, char *argv[], void *tests[], int nb_tests) {
 
         start_test();
 
-        if (CU_basic_run_test(pSuite,pTest) != CUE_SUCCESS)
+        if (CU_basic_run_test(pSuite,pTest) != CUE_SUCCESS) {
+            fclose(f_out);
+            fprintf(stderr, "Error when executing tests: CU_basic_run_test\n");
             return CU_get_error();
+        }
 
-        if (test_metadata.err)
+        if (test_metadata.err) {
+            fclose(f_out);
+            fprintf(stderr, "Error when executing tests: metadata\n");
             return test_metadata.err;
+        }
 
         int nb = CU_get_number_of_tests_failed();
         if (nb > 0)
@@ -378,17 +395,17 @@ int run_tests(int argc, char *argv[], void *tests[], int nb_tests) {
             ret = fprintf(f_out, "%s#SUCCESS#%s#%d#", test_metadata.problem,
                     test_metadata.descr, test_metadata.weight);
         if (ret < 0)
-            return ret;
+            goto error_exit;
 
         for(int j=0; j < test_metadata.nb_tags; j++) {
             ret = fprintf(f_out, "%s", test_metadata.tags[j]);
             if (ret < 0)
-                return ret;
+                goto error_exit;
 
             if (j != test_metadata.nb_tags - 1) {
                 ret = fprintf(f_out, ",");
                 if (ret < 0)
-                    return ret;
+                    goto error_exit;
             }
         }
 
@@ -403,21 +420,26 @@ int run_tests(int argc, char *argv[], void *tests[], int nb_tests) {
             free(head);
 
             if (ret < 0)
-                return ret;
+                goto error_exit;
         }
 
         test_metadata.fifo_out = NULL;
         ret = fprintf(f_out, "\n");
         if (ret < 0)
-            return ret;
-
+            goto error_exit;
     }
 
     fclose(f_out);
+    fclose(fstdout);
+    fclose(fstderr);
 
     /* Run all tests using the CUnit Basic interface */
     //CU_basic_run_tests();
     //CU_automated_run_tests();
     CU_cleanup_registry();
     return CU_get_error();
+error_exit:
+    fclose(f_out);
+    fprintf(stderr, "Error when printing the results.\n");
+    return ret;
 }

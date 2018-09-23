@@ -67,6 +67,15 @@ int create_udp_server_socket(const char *serv, int domain);
  */
 int create_udp_client_socket(const char *host, const char *serv, int domain);
 
+/**
+ * Connects the provided sfd UDP server socket to the address of the provided
+ * cfd client socket, such that calls to send on sfd will correctly send
+ * to the client and will be receivable from cfd. cfd should be "connected"
+ * to the server (i.e., its default address should be that of the server).
+ * Returns 0 in case of success, or -1 if there was an error.
+ */
+int connect_udp_server_to_client(int sfd, int cfd);
+
 #define RECV_CHUNK 1
 #define SEND_CHUNK 2
 

@@ -44,6 +44,10 @@ int create_socket(const char *host, const char *serv, int domain, int type, int 
         return -1;
     }
     if (do_bind) {
+        int yes = 1;
+        if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes))) {
+            perror("setsockopt");
+        }
         if (bind(fd, rep->ai_addr, rep->ai_addrlen)) {
             perror("bind");
             close(fd);
@@ -52,7 +56,7 @@ int create_socket(const char *host, const char *serv, int domain, int type, int 
         }
     } else {
         if (connect(fd, rep->ai_addr, rep->ai_addrlen)) {
-            perror("bind");
+            perror("connect");
             close(fd);
             freeaddrinfo(rep);
             return -1;
@@ -89,6 +93,29 @@ int create_udp_client_socket(const char *host, const char *serv, int domain)
 {
     int clientfd = create_socket(host, serv, domain, SOCK_DGRAM, 0, false);
     return clientfd;
+}
+
+int connect_udp_server_to_client(int sfd, int cfd)
+{
+    // send from cfd to recvfrom sfd.
+    char dumb = 'A';
+    ssize_t s = send(cfd, &dumb, sizeof(dumb), 0);
+    if (s != sizeof(dumb)) {
+        perror("send");
+        return -1;
+    }
+    struct sockaddr_storage client_addr;
+    socklen_t client_addrlen = sizeof(client_addr);
+    ssize_t r = recvfrom(sfd, &dumb, sizeof(dumb), 0, (struct sockaddr*)&client_addr, &client_addrlen);
+    if (r != sizeof(dumb)) {
+        perror("recvfrom");
+        return -1;
+    }
+    if (connect(sfd, (struct sockaddr*)&client_addr, client_addrlen)) {
+        perror("connect");
+        return -1;
+    }
+    return 0;
 }
 
 #define PIPE_AND_FORK_BEGIN() \

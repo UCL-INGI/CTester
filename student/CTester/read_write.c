@@ -112,6 +112,10 @@ int read_remove_entry(int fd)
             read_fd_table.n--;
         }
     }
+    if (read_fd_table.n == 0) {
+        free(read_fd_table.items);
+        read_fd_table.items = NULL;
+    }
     return (found ? 1 : 0);
 }
 
