@@ -39,7 +39,6 @@ gai_strerror_method_t gai_strerror_method = NULL;
 freeaddrinfo_badarg_report_t freeaddrinfo_badarg_reporter = NULL;
 
 // Used to record the addrinfo lists "returned" by getaddrinfo, in order to check for their deallocation via freeaddrinfo.
-// TODO maybe it would be better placed in the .c file ?
 struct addrinfo_node_t {
     struct addrinfo *addr_list;
     struct addrinfo_node_t *next;

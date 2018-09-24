@@ -279,23 +279,6 @@ void reinit_read_fd_table()
     read_fd_table.n = 0;
 }
 
-/*int enable_socket_recv_send_monitoring(bool active)
-{
-    // TODO
-}*/
-
-/*int enable_socket_all_monitoring(bool active)
-{
-    // TODO
-}*/
-
-/*
-int enable_pipe_monitoring(bool active)
-{
-    // TODO
-}
-*/
-
 
 int set_read_buffer(int fd, const struct read_buffer_t *buf)
 {

@@ -140,7 +140,6 @@ struct return_recvfrom_t {
     socklen_t addrlen;
 };
 
-// TODO see if we can merge last_returns.ret and last_return as only one variable within the structure, and with only this simplified access.
 struct stats_recv_t {
     int called;
     struct params_recv_t last_params;
