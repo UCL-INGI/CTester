@@ -1,7 +1,9 @@
-/*
+/**
+ * @file read_write.h
  * Functions and structure for manipulating read and write system calls,
  * as well as recv and send calls, in the presence of buffered data.
- *
+ */
+/*
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -21,7 +23,8 @@
 #include <stdint.h>
 
 /**
- * Functions and structures for manipulating read and write system calls,
+ * @class Read_Write
+ * Functions and structures for manipulating read and write system calls,s
  * as well as recv and send calls, in the presence of buffered data.
  *
  * An example use of these functions is with the recv system call on a socket.
@@ -68,7 +71,7 @@
  */
 
 
-/**
+/*
  * Enable globally the socket monitoring functionnalities. A value of true
  * activates it, a value of false deactivates it.
  * This means socket will add the returned fd to the list of sockets,
@@ -77,13 +80,13 @@
  */
 //int enable_socket_recv_send_monitoring(bool active);
 
-/**
+/*
  * In addition to enable_socket_recv_send_monitoring, the bind, connect,
  * listen, accept and shutdown calls check whether it is a socket.
  */
 //int enable_socket_all_monitoring(bool active);
 
-/**
+/*
  * Enable globally the pipe monitoring functionnalities.
  * Currently it is not supported. Maybe in a future version...
  */
@@ -151,9 +154,9 @@ struct read_buffer_t {
 /**
  * Sets the data to be retrieved from read/recv, for partial-return,
  * when simulating fragmented arrival of data.
- * - fd: file descriptor.
- * - buf: the data to be received.
- * Returns
+ * @param fd   file descriptor.
+ * @param buf  the data to be received.
+ * @return
  * -  0 if fd was not previously set to have a read_buffer_t
  * -  1 if fd has been previously set to have a read_buffer_t
  * - -1 if malloc error

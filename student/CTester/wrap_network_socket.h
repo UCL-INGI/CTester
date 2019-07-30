@@ -1,7 +1,9 @@
-/*
+/**
+ * @file wrap_network_socket.h
  * Wrapper for accept, bind, connect, listen, poll, select,
  * recv, recvfrom, recvmsg, send, sendto, sendmsg, socket.
- *
+ */
+/*
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -17,11 +19,11 @@
 #ifndef __WRAP_NETWORK_SOCKET_H_
 #define __WRAP_NETWORK_SOCKET_H_
 
-/**
+/*
  * Structures for accept.
  * In addition to the common stats structures,
  * there is an additional structure called return_accept_t,
- * which will retain the returned contained, in the case that the student
+ * which will retain the returned content, in the case that the student
  * frees the allocated memory before we have the possibility to check it.
  */
 struct params_accept_t {
@@ -31,24 +33,26 @@ struct params_accept_t {
 };
 
 /**
- * Structure to remember the returned value.
- * ret: return value of the call
- * addr: sockaddr filled in *addr in the call. Set to 0 if failure.
- * addrlen: size of the sockaddr filled in *addr, or zero if failure.
+ * Structure to remember the returned value for accept.
  */
 struct return_accept_t {
+    /**
+     * sockaddr filled in *addr in the call. Set to 0 if failure.
+     * @note This is not a pointer, but the actual content.
+     */
     struct sockaddr_storage addr; // We use a sockaddr_storage as it is guaranteed to always be big enough to contain sockaddresses.
+    /** size of the sockaddr filled in *addr, or zero if failure. */
     socklen_t addrlen;
 };
 
 struct stats_accept_t {
-    int called;
-    struct params_accept_t last_params;
+    int called;                          ///< Number of times the system call has been called.
+    struct params_accept_t last_params;  ///< Parameters of the last call
     int last_return;
-    struct return_accept_t last_returns;
+    struct return_accept_t last_returns; ///< Return values of the call
 };
 
-/**
+/*
  * Structures for bind
  */
 struct params_bind_t {
@@ -64,7 +68,7 @@ struct stats_bind_t {
 };
 
 
-/**
+/*
  * Structures for connect
  */
 struct params_connect_t {
@@ -80,7 +84,7 @@ struct stats_connect_t {
 };
 
 
-/**
+/*
  * Structures for listen
  */
 struct params_listen_t {
@@ -95,7 +99,7 @@ struct stats_listen_t {
 };
 
 
-/**
+/*
  * Structures for poll
  */
 struct params_poll_t {
@@ -112,7 +116,7 @@ struct stats_poll_t {
 };
 
 
-/**
+/*
  * Structures for recv, recvfrom, recvmsg.
  */
 struct params_recv_t {
@@ -129,16 +133,21 @@ struct params_recvfrom_t {
     struct sockaddr *src_addr;
     socklen_t *addrlen;
 };
-
 struct params_recvmsg_t {
     int sockfd;
     struct msghdr *msg;
     int flags;
 };
+/**
+ * Structure for recording the return values of recvfrom
+ */
 struct return_recvfrom_t {
+    /** Source address */
     struct sockaddr_storage src_addr;
+    /** Source address length */
     socklen_t addrlen;
 };
+
 
 struct stats_recv_t {
     int called;
@@ -157,15 +166,18 @@ struct stats_recvmsg_t {
     ssize_t last_return;
     struct msghdr last_returned_msg;
 };
+/**
+ * Structure that records total statistics for recv, recvfrom and recvmsg combined.
+ */
 struct stats_recv_all_t {
+    /** Number of times any of recv, recvfrom or recvmsg has been called */
     int called; // Should be incremented each time we increment another one
 };
 
 
-/**
+/*
  * Structures for select.
  */
-
 struct params_select_t {
     int nfds;
     fd_set *readfds_ptr;
@@ -185,7 +197,7 @@ struct stats_select_t {
 };
 
 
-/**
+/*
  * Structures for send, sendto and sendmsg.
  */
 struct params_send_t {
@@ -210,6 +222,7 @@ struct params_sendmsg_t {
     int flags;
 };
 
+
 struct stats_send_t {
     int called;
     struct params_send_t last_params;
@@ -230,10 +243,9 @@ struct stats_send_all_t {
 };
 
 
-/**
+/*
  * Structures for shutdown.
  */
-
 struct params_shutdown_t {
     int sockfd;
     int how;
@@ -246,7 +258,7 @@ struct stats_shutdown_t {
 };
 
 
-/**
+/*
  * Structures for socket
  */
 struct params_socket_t {
@@ -262,8 +274,12 @@ struct stats_socket_t {
 };
 
 
-/**
+/*
  * Utility functions and structures
+ */
+
+/**
+ * Resets the statistics for the socket-related functions.
  */
 void reinit_network_socket_stats();
 

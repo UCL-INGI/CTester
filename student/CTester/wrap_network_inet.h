@@ -1,6 +1,8 @@
-/*
+/**
+ * @file wrap_network_inet.h
  * Wrapper for htons, ntohs, htonl, ntohl, and other future functions.
- *
+ */
+/*
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -16,7 +18,7 @@
 #ifndef __WRAP_NETWORK_INET_H_
 #define __WRAP_NETWORK_INET_H_
 
-/**
+/*
  * Structures for htons, ntohs, htonl, ntohl.
  */
 
@@ -55,8 +57,12 @@ struct stats_ntohl_t {
 };
 
 
-/**
+/*
  * Utility functions and structures
+ */
+
+/**
+ * Resets the statistics for the functions htons, ntohs, htonl, ntohl.
  */
 void reinit_network_inet_stats();
 

@@ -1,3 +1,18 @@
+/*
+ * Main CTester file, containing all base functions and structures.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #define _GNU_SOURCE
 
 #include <stdlib.h>
@@ -289,7 +304,7 @@ int run_tests(int argc, char *argv[], void *tests[], int nb_tests) {
     // Code for detecting properly double free errors
     mallopt(M_CHECK_ACTION, 1); // don't abort if double free
     true_stderr = dup(STDERR_FILENO); // preparing a non-blocking pipe for stderr
-    true_stdout = dup(STDOUT_FILENO); // preparing a non-blocking pipe for stderr
+    true_stdout = dup(STDOUT_FILENO); // preparing a non-blocking pipe for stdout
     fstdout = fdopen(true_stdout, "w"); // We can't just copy-paste stdout and stderr
     fstderr = fdopen(true_stderr, "w"); // as these structures use the file descriptor
 
