@@ -19,6 +19,7 @@
 #include <malloc.h>
 
 #include "wrap.h"
+#include "read_write.h"
 
 #define TAGS_NB_MAX 20
 #define TAGS_LEN_MAX 30
@@ -242,6 +243,8 @@ void start_test()
     memset(&failures, 0, sizeof(failures));
     memset(&monitored, 0, sizeof(monitored));
     memset(&logs, 0, sizeof(logs));
+    reset_gai_fai_gstr_gni_methods();
+    reinit_read_fd_table();
 }
 
 /**
