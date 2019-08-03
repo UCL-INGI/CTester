@@ -7,7 +7,7 @@ LDFLAGS=-lcunit -lm -lpthread -ldl -rdynamic
 SRC=$(sort $(wildcard *.c)) $(sort $(wildcard CTester/*.c))
 OBJ=$(SRC:.c=.o)
 CFLAGS = -Wall -Werror -Wextra -Wshadow
-CFLAGS += -std=gnu99 -pedantic
+CFLAGS += -std=gnu99
 #CFLAGS += -DC99
 CFLAGS += -ICTester # to include the folder.
 DEBUGFLAGS = -g -Wno-unused-variable -Wno-unused-parameter
