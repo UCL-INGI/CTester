@@ -49,8 +49,6 @@ extern struct wrap_fail_t failures;
 /**
  * Auxiliary functions and structures for use by implementers for read/write
  */
-extern bool fd_is_read_buffered(int fd);
-
 extern ssize_t read_handle_buffer(int fd, void *buf, size_t len, int flags);
 
 extern struct read_fd_table_t read_fd_table;

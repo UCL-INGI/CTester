@@ -162,6 +162,11 @@ struct read_buffer_t {
 int set_read_buffer(int fd, const struct read_buffer_t *buf);
 
 /**
+ * Is the file descriptor fd associated to some read buffer?
+ */
+bool fd_is_read_buffered(int fd);
+
+/**
  * Returns the amount of bytes read from the previously provided buffer
  * for this file descriptor, or -1 if the file descriptor is not associated
  * with a read_buffer.
