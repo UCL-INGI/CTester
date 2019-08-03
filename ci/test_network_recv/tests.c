@@ -498,6 +498,11 @@ void test_fragmented_recv_after()
 	free(tab1);
 }
 
+/*
+ * FIXME this test can sometimes fail, as it depends on the real-time property
+ * of the machine on which it is run.
+ * TODO Make this independent of the machine. Maybe remove the API...
+ */
 void test_fragmented_recv_realtime()
 {
 	set_test_metadata("fragmented_recv_realtime", _("Tests the use of real-time-intervals"), 1);

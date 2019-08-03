@@ -1,1 +1,3 @@
-wrapper_stats#SUCCESS#Tests that the wrapper functions correctly remembers the stats#1#
+substitute_gai#SUCCESS#Test if the substitution functions etc work correctly#1#
+checked_freeaddrinfo#SUCCESS#Tests the checked freeaddrinfo#1#
+simple_gai_fai#SUCCESS#Tests simple_gai and simple_fai#1#
