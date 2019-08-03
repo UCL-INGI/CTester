@@ -27,7 +27,7 @@
 struct params_accept_t {
     int sockfd;
     struct sockaddr *addr;
-    socklen_t *addrlen_ptr;
+    socklen_t *addrlen;
 };
 
 /**
@@ -127,7 +127,7 @@ struct params_recvfrom_t {
     size_t len;
     int flags;
     struct sockaddr *src_addr;
-    socklen_t *addrlen_ptr;
+    socklen_t *addrlen;
 };
 
 struct params_recvmsg_t {
@@ -199,13 +199,13 @@ struct params_sendto_t {
     const void *buf;
     size_t len;
     int flags;
-    const struct sockaddr *dest_addr_ptr;
+    const struct sockaddr *dest_addr;
     //struct sockaddr_storage dest_addr;
     socklen_t addrlen;
 };
 struct params_sendmsg_t {
     int sockfd;
-    const struct msghdr *msg_ptr;
+    const struct msghdr *msg;
     //struct msghdr msg;
     int flags;
 };

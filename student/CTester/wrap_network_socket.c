@@ -79,7 +79,7 @@ int __wrap_accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen)
     stats.accept.last_params = (struct params_accept_t) {
         .sockfd = sockfd,
         .addr = addr,
-        .addrlen_ptr = addrlen
+        .addrlen = addrlen
     };
     // Reinit stats
     stats.accept.last_returns.addrlen = 0;
@@ -199,7 +199,7 @@ int __wrap_poll(struct pollfd *fds, nfds_t nfds, int timeout)
     if (! (ret == -1 && errno == EFAULT)) {
         struct pollfd *tmp = malloc(nfds * sizeof(struct pollfd));
         if (tmp) {
-            memcpy(fds, tmp, nfds * sizeof(struct pollfd));
+            memcpy(tmp, fds, nfds * sizeof(struct pollfd));
             stats.poll.last_params.fds_copy = tmp;
         }
     }
@@ -248,7 +248,7 @@ ssize_t __wrap_recvfrom(int sockfd, void *buf, size_t len, int flags, struct soc
         .len = len,
         .flags = flags,
         .src_addr = src_addr,
-        .addrlen_ptr = addrlen
+        .addrlen = addrlen
     };
     stats.recvfrom.last_returned_addr.addrlen = 0;
     memset(&(stats.recvfrom.last_returned_addr.src_addr), 0, sizeof(struct sockaddr_storage));
@@ -365,7 +365,7 @@ ssize_t __wrap_sendto(int sockfd, const void *buf, size_t len, int flags, const 
         .buf = buf,
         .len = len,
         .flags = flags,
-        .dest_addr_ptr = dest_addr,
+        .dest_addr = dest_addr,
         //.dest_addr = (struct sockaddr_storage)0,
         .addrlen = addrlen
     };
@@ -392,7 +392,7 @@ ssize_t __wrap_sendmsg(int sockfd, const struct msghdr *msg, int flags)
     stats.send_all.called++;
     stats.sendmsg.last_params = (struct params_sendmsg_t) {
         .sockfd = sockfd,
-        .msg_ptr = msg,
+        .msg = msg,
         //.msg = (struct msghdr)0,
         .flags = flags
     };
