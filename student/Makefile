@@ -1,10 +1,13 @@
+# Makefile for tasks using CTester
 CC=gcc
+CPP=cppcheck
 EXEC=tests
+CPPFLAGS=--error-exitcode=1
 LDFLAGS=-lcunit -lm -lpthread -ldl -rdynamic
 SRC=$(sort $(wildcard *.c)) $(sort $(wildcard CTester/*.c))
 OBJ=$(SRC:.c=.o)
 CFLAGS = -Wall -Werror -Wextra -Wshadow
-CFLAGS += -std=gnu99
+CFLAGS += -std=gnu99 -pedantic
 #CFLAGS += -DC99
 CFLAGS += -ICTester # to include the folder.
 DEBUGFLAGS = -g -Wno-unused-variable -Wno-unused-parameter
@@ -27,7 +30,7 @@ all: $(EXEC)
 	$(CC) $(CFLAGS) -c -o $@ $< 
 
 $(EXEC): $(OBJ)
-	$(CC) $(WRAP) -o $@ $(OBJ) $(LDFLAGS)
+	$(CC) $(CFLAGS) $(WRAP) -o $@ $(OBJ) $(LDFLAGS)
 
 create-po:
 	mkdir -p po/fr/
@@ -43,10 +46,15 @@ compile-mo:
 	mkdir -p fr/LC_MESSAGES/
 	cp po/fr/tests.mo fr/LC_MESSAGES/tests.mo
 
+check: $(SRC)
+	$(CPP) $(CPPFLAGS) $<
+
 clean:
 	rm -f $(EXEC) $(OBJ)
+
 #clr-aux:
 #	rm -f $(INC) $(ASM)
+
 rebuild: clean all
 
 
