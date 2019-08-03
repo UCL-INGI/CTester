@@ -7,12 +7,12 @@
 
 //int pthread_mutex_lock(pthread_mutex_t *mutex);
 //int pthread_mutex_trylock(pthread_mutex_t *mutex);
-//int pthread_mutex_unlock(pthread_mutex_t *mutex); 
+//int pthread_mutex_unlock(pthread_mutex_t *mutex);
 
 
 int __real_pthread_mutex_lock(pthread_mutex_t *mutex);
 int __real_pthread_mutex_trylock(pthread_mutex_t *mutex);
-int __real_pthread_mutex_unlock(pthread_mutex_t *mutex); 
+int __real_pthread_mutex_unlock(pthread_mutex_t *mutex);
 int __real_pthread_mutex_init(pthread_mutex_t *restrict mutex, const pthread_mutexattr_t *restrict attr);
 int __real_pthread_mutex_destroy(pthread_mutex_t *mutex);
 
@@ -22,26 +22,78 @@ extern struct wrap_monitor_t monitored;
 extern struct wrap_fail_t failures;
 
 
+void init_pthread_mutex_init() {
+  // nothing to do
+}
+void init_pthread_mutex_lock() {
+  // nothing to do
+}
+void init_pthread_mutex_trylock() {
+  // nothing to do
+}
+void init_pthread_mutex_unlock() {
+  // nothing to do
+}
+void init_pthread_mutex_destroy() {
+  // nothing to do
+}
 void init_mutex() {
-  // nothing to do
+  init_pthread_mutex_init();
+  init_pthread_mutex_lock();
+  init_pthread_mutex_trylock();
+  init_pthread_mutex_unlock();
+  init_pthread_mutex_destroy();
 }
 
+void clean_pthread_mutex_init() {
+  // nothing to do
+}
+void clean_pthread_mutex_lock() {
+  // nothing to do
+}
+void clean_pthread_mutex_trylock() {
+  // nothing to do
+}
+void clean_pthread_mutex_unlock() {
+  // nothing to do
+}
+void clean_pthread_mutex_destroy() {
+  // nothing to do
+}
 void clean_mutex() {
-  // nothing to do
+  clean_pthread_mutex_init();
+  clean_pthread_mutex_lock();
+  clean_pthread_mutex_trylock();
+  clean_pthread_mutex_unlock();
+  clean_pthread_mutex_destroy();
 }
 
-void resetstats_mutex() {
-
-  stats.pthread_mutex_lock.called=0;
-  stats.pthread_mutex_lock.last_return=0;
-  stats.pthread_mutex_trylock.called=0;
-  stats.pthread_mutex_trylock.last_return=0;
-  stats.pthread_mutex_unlock.called=0;
-  stats.pthread_mutex_unlock.last_return=0;
+void resetstats_pthread_mutex_init() {
   stats.pthread_mutex_init.called=0;
   stats.pthread_mutex_init.last_return=0;
+}
+void resetstats_pthread_mutex_lock() {
+  stats.pthread_mutex_lock.called=0;
+  stats.pthread_mutex_lock.last_return=0;
+}
+void resetstats_pthread_mutex_trylock() {
+  stats.pthread_mutex_trylock.called=0;
+  stats.pthread_mutex_trylock.last_return=0;
+}
+void resetstats_pthread_mutex_unlock() {
+  stats.pthread_mutex_unlock.called=0;
+  stats.pthread_mutex_unlock.last_return=0;
+}
+void resetstats_pthread_mutex_destroy() {
   stats.pthread_mutex_destroy.called=0;
   stats.pthread_mutex_destroy.last_return=0;
+}
+void resetstats_mutex() {
+  resetstats_pthread_mutex_init();
+  resetstats_pthread_mutex_lock();
+  resetstats_pthread_mutex_trylock();
+  resetstats_pthread_mutex_unlock();
+  resetstats_pthread_mutex_destroy();
 }
 
 int __wrap_pthread_mutex_destroy(pthread_mutex_t *mutex) {
