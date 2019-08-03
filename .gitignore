@@ -39,10 +39,16 @@
 *.idb
 *.pdb
 
+# Vi/Vim
+*.vim
+
 # Emacs
 *~
 \#*\#
 .\#*
+
+# VS Code
+.vscode/
 
 # vi
 [._]*.s[a-v][a-z]
