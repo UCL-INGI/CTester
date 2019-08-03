@@ -28,7 +28,16 @@ struct params_getaddrinfo_t {
     struct addrinfo **res;
 };
 
-struct addrinfo_node_t;
+// Used to record the addrinfo lists "returned" by getaddrinfo, in order to check for their deallocation via freeaddrinfo.
+/**
+ * Node for a list of all returned lists of struct addrinfo
+ * returned by getaddrinfo.
+ * This is used to check that they are deallocated via freeaddrinfo correctly.
+ */
+struct addrinfo_node_t {
+    struct addrinfo *addr_list;
+    struct addrinfo_node_t *next;
+};
 
 struct stats_getaddrinfo_t {
     int called; // number of times the getaddrinfo call has been issued
@@ -159,6 +168,11 @@ typedef void (*freeaddrinfo_badarg_report_t)();
  */
 void set_freeaddrinfo_badarg_report(freeaddrinfo_badarg_report_t reporter);
 
+
+/**
+ * Resets all methods to the default, library-provided ones.
+ */
+void reset_gai_fai_gstr_gni_methods();
 
 /**
  * Replaces getaddrinfo by a version which doesn't call DNS.

@@ -38,11 +38,6 @@ getnameinfo_method_t  getnameinfo_method  = NULL;
 gai_strerror_method_t gai_strerror_method = NULL;
 freeaddrinfo_badarg_report_t freeaddrinfo_badarg_reporter = NULL;
 
-// Used to record the addrinfo lists "returned" by getaddrinfo, in order to check for their deallocation via freeaddrinfo.
-struct addrinfo_node_t {
-    struct addrinfo *addr_list;
-    struct addrinfo_node_t *next;
-};
 
 void add_result(struct addrinfo *res)
 {
@@ -188,7 +183,7 @@ void __wrap_freeaddrinfo(struct addrinfo *res)
 
 const char * __wrap_gai_strerror(int ecode)
 {
-    if (! (wrap_monitoring && monitored.getaddrinfo)) {
+    if (! (wrap_monitoring && monitored.gai_strerror)) {
         return __real_gai_strerror(ecode);
     }
     stats.gai_strerror.called++;
@@ -202,10 +197,28 @@ const char * __wrap_gai_strerror(int ecode)
 
 void reinit_stats_network_dns()
 {
+    // First, clean up the list of getaddrinfo returned lists
+    struct addrinfo_node_t *runner = stats.getaddrinfo.addrinfo_list;
+    while (runner != NULL) {
+        struct addrinfo_node_t *old = runner;
+        runner = runner->next;
+        /* Ideally, we should also free old->addr_list by using freeaddrinfo,
+           but as it is possible that the list should be deallocated
+           by a different function than the current freeaddrinfo,
+           it is safer to not attempt it and leave it as-is.
+           TODO: add the dedicated freeaddrinfo as a field of the nodes ;-)
+        */
+        free(old);
+    }
     memset(&(stats.getaddrinfo), 0, sizeof(stats.getaddrinfo));
     memset(&(stats.freeaddrinfo), 0, sizeof(stats.freeaddrinfo));
     memset(&(stats.getnameinfo), 0, sizeof(stats.getnameinfo));
     memset(&(stats.gai_strerror), 0, sizeof(stats.gai_strerror));
+}
+
+void set_check_freeaddrinfo(bool check)
+{
+    check_freeaddrinfo = check;
 }
 
 
@@ -231,16 +244,42 @@ void set_gai_strerror_method(gai_strerror_method_t method)
 }
 
 
+void set_freeaddrinfo_badarg_report(freeaddrinfo_badarg_report_t reporter)
+{
+    freeaddrinfo_badarg_reporter = reporter;
+}
+
+void reset_gai_fai_gstr_gni_methods()
+{
+    set_gai_methods(NULL, NULL);
+    set_getnameinfo_method(NULL);
+    set_gai_strerror_method(NULL);
+}
+
 int simple_getaddrinfo(const char *node, const char *serv, const struct addrinfo *hints, struct addrinfo **res)
 {
+    if (node == NULL && hints != NULL && hints && (hints->ai_flags & AI_CANONNAME) != 0) {
+        return EAI_BADFLAGS;
+    }
+    if (node == NULL && serv == NULL) {
+        return EAI_NONAME;
+    }
     uint8_t buf[sizeof(struct in6_addr)];
     memset(buf, 0, sizeof(buf));
-    int family = hints->ai_family;
+    int family = hints ? hints->ai_family : AF_UNSPEC;
     if (node == NULL) {
-        if (family == AF_INET) {
-            node = "127.0.0.1";
+        if (hints && (hints->ai_flags & AI_PASSIVE)) {
+            if (family == AF_INET) {
+                node = "0.0.0.0";
+            } else {
+                node = "::";
+            }
         } else {
-            node = "::1";
+            if (family == AF_INET) {
+                node = "127.0.0.1";
+            } else {
+                node = "::1";
+            }
         }
     }
     // Let's try IPv4
@@ -260,7 +299,13 @@ int simple_getaddrinfo(const char *node, const char *serv, const struct addrinfo
             return EAI_NONAME;
         }
     }
-    if (hints->ai_family != AF_UNSPEC && family != hints->ai_family)
+    char *endservptr = NULL;
+    in_port_t port = (serv == NULL) ? 0 : htons((uint16_t)(strtol(serv, &endservptr, 10)));
+    if (serv != NULL && (endservptr == NULL || *endservptr != '\0')) {
+        // As we assume that we only deal with numeric hosts and service numbers, this is invalid
+        return EAI_NONAME;
+    }
+    if (hints && hints->ai_family != AF_UNSPEC && family != hints->ai_family)
         return EAI_FAMILY;
     // Converted, and family identified
     *res = malloc(sizeof(struct addrinfo));
@@ -269,9 +314,9 @@ int simple_getaddrinfo(const char *node, const char *serv, const struct addrinfo
         return EAI_MEMORY;
     rp->ai_flags = 0;
     rp->ai_family = family;
-    rp->ai_socktype = hints->ai_socktype;
-    rp->ai_protocol = hints->ai_protocol;
-    if ((hints->ai_flags & AI_CANONNAME) != 0) {
+    rp->ai_socktype = hints ? hints->ai_socktype : SOCK_DGRAM;
+    rp->ai_protocol = hints ? hints->ai_protocol : 0;
+    if (hints && (hints->ai_flags & AI_CANONNAME) != 0) {
         rp->ai_canonname = malloc(strlen(node) + 2);
         if (rp->ai_canonname == NULL) {
             free(rp);
@@ -293,7 +338,7 @@ int simple_getaddrinfo(const char *node, const char *serv, const struct addrinfo
             return EAI_MEMORY;
         }
         addr->sin_family = AF_INET;
-        addr->sin_port = htons((uint16_t)(strtol(serv, NULL, 10)));
+        addr->sin_port = port;
         memcpy(&(addr->sin_addr), buf, sizeof(struct in_addr));
         rp->ai_addr = (struct sockaddr*)addr;
         rp->ai_addrlen = sizeof(struct sockaddr_in);
@@ -307,7 +352,7 @@ int simple_getaddrinfo(const char *node, const char *serv, const struct addrinfo
         }
         memset(addr, 0, sizeof(*addr));
         addr->sin6_family = AF_INET6;
-        addr->sin6_port = htons((uint16_t)(strtol(serv, NULL, 10)));
+        addr->sin6_port = port;
         memcpy(&(addr->sin6_addr), buf, sizeof(struct in6_addr));
         rp->ai_addr = (struct sockaddr*)addr;
         rp->ai_addrlen = sizeof(struct sockaddr_in6);
