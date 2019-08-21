@@ -14,6 +14,7 @@ import subprocess, os, shlex, sys
 # - the CTester folder, containing all the wraping code, in the student/ folder too
 # We can find it
 # - in the current directory
+# - in the /course/common/CTester/ directory
 
 """CTester_files = ["/student/Ctester", "/run.py", "/student/Makefile"]"""
 
@@ -23,9 +24,9 @@ def has_CTester(path="."):
 def copy_CTester():
     if has_CTester("."):
         return 0 # Use it right here
-    elif has_CTester("/common/CTester"):
+    elif has_CTester("/course/common/CTester"):
         # Copy it to here
-        p = subprocess.Popen(shlex.split("cp -n -r /common/CTester/* ."), stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p = subprocess.Popen(shlex.split("cp -n -r /course/common/CTester/. ."), stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         (cp_output, cp_errput) = p.communicate()
         if p.returncode:
             print("Unable to move CTester", file=sys.stderr)
