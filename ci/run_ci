@@ -53,14 +53,17 @@ if [ "$#" -eq "1" ]; then
     fi
 fi
 
-shopt -s nullglob
-declare -a tests=(*/)
-shopt -u nullglob
+declare -a tests=()
+while IFS= read -r -d $'\0'; do
+    tests+=("$REPLY")
+done < <(find . ! -path "." -type d ! -name "courses" -print0)
 
 if ((${#tests[@]} == 0)); then
     echo -e "No tests found!" >&2
     exit 1
 fi
+
+echo -e "Found following tests: " ${tests[@]}
 
 echo -e "##### Executing tests"
 tests_ok=0
@@ -80,7 +83,20 @@ echo -e "### End of tests ###"
 echo -e "####################"
 echo -e "#####" $tests_ok "/" ${#tests[@]} "tests succeeded"
 if ((tests_ok != ${#tests[@]})); then
-    exit 1
+    exitval=1
 else
-    exit 0
+    exitval=0
+fi
+
+
+echo -e "\n####################"
+echo -e "## Testing courses #"
+echo -e "####################"
+
+./run_course
+
+if (($? == 0)); then
+    exit $exitval
+else
+    exit 1
 fi

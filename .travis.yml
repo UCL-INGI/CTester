@@ -1,6 +1,18 @@
 language: c
 
+python:
+- '3.6'
+
+services:
+- mongodb
+- docker
+
 before_install:
 - sudo apt-get install libcunit1 libcunit1-dev
+- pip3 install git+https://github.com/Maxmawt/INGInious # Until UCL-INGI/INGInious has fixed his part ;-)
+- docker pull ingi/inginious-c-base
+- docker pull ingi/inginious-c-default
+- docker pull ingi/inginious-c-cpp
+- docker pull ingi/inginious-c-pyjavacpp
 
 script: ci/run_ci
