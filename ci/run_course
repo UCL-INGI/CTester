@@ -1,0 +1,232 @@
+#!/bin/bash
+
+# ADDING MORE COURSE TO THE TESTS
+# Simply put a script with the course name inside the ci/courses/ folder.
+# Note that after running this script, this test script expects the course
+# to have the same name as the folder in which it is located; you should
+# change the folder name to match the course name if it is not the case.
+# Also, it is recommanded that no task matches the course name ;-)
+# If a task uses a full custom version of CTester, put a file named
+#     no_ctester_test
+# inside the task. This test script will not modify anything inside of this task.
+# This test script updates the CTester files in the following way:
+# - If the full CTester is present (run.py, student/Makefile, student/CTester),
+#   removes all to let the task use the common one, and updates the run file.
+# - If the CTester folder is present, but one of the other two is missing,
+#   updates the run file.
+# - If no CTester folder is present, then if the run file contains allusions
+#   to CTester, it will be replaced.
+# The script will be called at various time in the process:
+# - init: at the start. Should download/install the course, perform some modifs.
+#   It happens moments before we copy the course, create test folders, and call
+#   the first inginious-autotest.
+# - before_autotest: This is just after we've replaced CTester, and before
+#   we call inginious-autotest for the second time. Perform there any patching.
+#   Note: we're located in the course folder. The second parameter is the "ci"
+#   folder. Note: you can also use it to restore some tasks, if this script
+#   messed up.
+
+_term() {
+    kill -TERM "$child" 2>/dev/null
+}
+
+prepare_course() {
+    if [ "$2" == "mkdir" ]; then
+        domkdir='-true'
+    else
+        domkdir='-false'
+    fi
+    test -f $1 && echo "WARNING: found a task with the same name as the course" >&2
+    mkdir $1
+    find . -type d ! -path "*/$1/*" -exec test -f {}/task.yaml \; \
+        -print \
+        \( \( $domkdir -exec mkdir {}/test \; \) -o -true \) \
+        -exec cp -r {} $1/$(basename {}) \;
+    find . -name "course.yml" -o -name "course.yaml" -print -exec cp {} $1/{} \; -quit
+}
+
+exec_course() {
+    # $1: name of course, should match the folder name
+    mkdir env
+    pushd env
+    # We're in CTester/ci/env
+    # Call course script, so that it downloads itself
+    # Note: this script should also tweak the tasks that use a full custom version of CTester,
+    # by adding a ".no_ctester_test" file in the top directory
+    echo -e "Initializing folder using custom script"
+    ../courses/$1 init
+    echo -e "Done initializing"
+    mv $1 _$1
+    pushd _$1
+    # We're in CTester/ci/env/_<course_name>
+
+    # Test the course in its default configuration:
+    # if it fails, skip the new CTester, as we don't want to check errors
+    # that don't come from us.
+    echo -e "Preparing course"
+    prepare_course $1 mkdir
+
+    echo -e "First autotest, testing if course is OK"
+    inginious-autotest . $1 -l
+    if [ $? -ne '0' ]; then
+        echo -e "Course is already failing; skipping it"
+        popd
+        popd
+        rm -rf env
+        retval=1
+        return $retval
+    fi
+
+    echo -e "Preparing course for second run"
+    # Cleanup
+    rm -r $1
+    prepare_course $1 nomkdir
+
+    echo -e "Creating local copy of CTester"
+    mkdir -p CTester/student
+    cp -r ../../../run ../../../run.py CTester/
+    cp -r ../../../student/Makefile ../../../student/CTester CTester/student/
+
+    echo -e "Patching local copy of CTester"
+    # Patch the Makefile to be less strict
+    sed -i 's/-Wshadow// ; s/-Wextra//' CTester/student/Makefile
+    # Remove the "sort" as it causes bugs in the current version. NOTE: moved to custom
+    # Patch the run file to be less strict too. NOTE: moved to custom
+
+    pushd $1
+    # We're in CTester/ci/env/_<course_name>/<course_name>
+    # CTester's root is at ../../../../
+    # Our patched copy is at ../CTester/
+
+    echo -e "Replacing CTester in each valid task"
+    # Remove $common/CTester and $common/student/CTester, as we don't need them.
+    rm -rf \$common/CTester
+    rm -rf \$common/student/CTester
+    # Find and replace all versions of CTester in each task
+    # Only replace CTester if it's fully there.
+    # If a task only has two of either student/CTester/, student/Makefile,
+    # or run.py, do not replace (by deleting), as CTester allows to provide
+    # custom versions of these files;
+    # the new copy of CTester will be provided upon run.
+
+    # Tasks with none of the three use the default CTester, or no CTester at all:
+    # replace only the run file.
+    # Tasks with only one or two of the three probably use CTester,
+    # with custom modifications: replace only the run file
+    # If there is a CTester folder, then it is surely CTester
+    find . -name "student" -type d \
+        ! -path "*/\$common/*" \
+        -exec test ! -f {}/../no_ctester_test \; \
+        -exec test -d {}/CTester \; \
+        \( \( -exec cp ../CTester/run {}/../run \; -printf "%p:\t\tUpdated folder, case 1\n" \) \
+        -o -printf "%p:\t\tFAILED updating folder, case 1\n" \)
+    # If there is no CTester folder, then the presence of a run file
+    # or a Makefile doesn't guarantee that it uses CTester.
+    # So we check the content of the run file
+    find . -name "run" \
+        \( -exec grep -iq "CTester" {} \; -o -exec grep -iq "BAN_FUNC" {} \; \) \
+        -execdir test ! -f no_ctester_test \; \
+        \( \( -exec cp ../CTester/run {} \; -printf "%p:\t\tUpdated folder, case 2\n" \) \
+        -o -printf "%p:\t\tFAILED updating folder, case 2\n" \)
+
+    # Tasks with all three use a local CTester: we can test this by overwriting all files with the new ones
+    find . -name "student" \
+        ! -path "*/\$common/*" \
+        -exec test -f {}/Makefile \; \
+        -exec test -d {}/CTester \; \
+        -exec test ! -f {}/../no_ctester_test \; \
+        \( \( -exec rm -f {}/../run.py {}/Makefile \; \
+        -exec rm -r {}/CTester \; \
+        -printf "%p:\t\tUpdated folder, case 3\n" \) \
+        -o -printf "%p:\t\tFAILED updating folder, case 3\n" \)
+    # No need to copy the run file, it has been taken care of before
+    # It also remove the CTester folder, so we completely replace it.
+    # Note: for backward compatibility reasons, we don't check if the task
+    # contains run.py; the following lines were removed.
+#        -exec test -f {}/../run.py \; \
+#        -printf "%p: OK1 " \
+
+    # Put CTester into common
+    mkdir -p \$common/CTester/student/ || true
+    cp ../CTester/run ../CTester/run.py \$common/CTester/
+    cp ../CTester/student/Makefile \$common/CTester/student/
+    cp -r ../CTester/student/CTester \$common/CTester/student/
+
+    echo -e "Calling custom script before autotest, and after replacing CTester"
+    ../../../courses/$1 before_autotest
+
+    popd
+    # We're in CTester/ci/env/_<course_name>
+
+    echo -e "Second run of inginious-autotest"
+    sleep 5
+    inginious-autotest . $1 -l
+    if [ $? -eq 0 ]; then
+        echo -e "\n#####" $1 ": OK"
+        retval=1
+    else
+        echo -e "\n#####" $1 ": course test failed"
+        retval=0
+    fi
+
+    popd
+    popd
+    # We're in CTester/ci
+    rm -rf env
+    return $retval
+}
+
+cd "$(dirname "$0")"
+
+rm -rf env/
+
+trap _term SIGTERM
+
+if [ "$#" -eq "1" ]; then
+    echo -e "##### Executing test of course" $1
+    exec_course $1
+    if [ $? -eq '1' ]; then
+        echo -e "##### Successfully tested course"
+        exit 0
+    else
+        echo -e "##### Failed testing course"
+        exit 1
+    fi
+fi
+
+shopt -s nullglob
+pushd courses
+declare -a courses=(*)
+popd
+shopt -u nullglob
+
+if ((${#courses[@]} == 0)); then
+    echo -e "No courses found! Skip testing"
+    exit 0
+fi
+
+echo -e "Found following courses: " ${courses[@]}
+
+echo -e "##### Executing tests of courses"
+courses_ok=0
+
+for i in "${courses[@]}"
+do
+    echo -e "\n####################" $i
+    exec_course $i
+    if [ $? -eq '1' ]; then
+        courses_ok=$((courses_ok+1))
+    fi
+    echo -e "####################"
+done
+
+echo -e "\n################################"
+echo -e "### End of tests for courses ###"
+echo -e "################################"
+echo -e "#####" $courses_ok "/" ${#courses[@]} "courses succeeded"
+if ((courses_ok != ${#courses[@]})); then
+    exit 1
+else
+    exit 0
+fi
+

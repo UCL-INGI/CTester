@@ -1,7 +1,8 @@
 #!/bin/bash
 
-declare -a tests=("test-simple-success" "test-simple-fail")
-cd "$(dirname "$0")"
+_term() {
+    kill -TERM "$child" 2>/dev/null
+}
 
 exec_test() {
     mkdir env/
@@ -11,22 +12,24 @@ exec_test() {
     pushd env
 
     make
-    echo "### $1: executing ..."
-    ./tests
+    echo -e "##### $1: executing ...\n"
+    ./tests &
+    child=$!
+    wait "$child"
 
     if [ -f ./results.txt ]; then
         cmp --silent results.txt expected_results.txt
         if [ $? -eq 0 ]; then
-            echo '###' $1 ': OK'
+            echo -e "\n#####" $1 ": OK"
             pushd
             rm -rf env
             return 1
         else
-            echo '###' $1 ': results.txt diverges from the expected output:'
+            echo -e "\n#####" $1 ": results.txt diverges from the expected output:"
             diff results.txt expected_results.txt
         fi
     else
-        echo '###' $1 ': CTester did not create a results.txt file'
+        echo -e "\n#####" $1 ": CTester did not create a results.txt file"
     fi
 
     popd
@@ -34,23 +37,66 @@ exec_test() {
     return 0
 }
 
+cd "$(dirname "$0")"
 
-echo '### Executing tests'
+trap _term SIGTERM
+
+if [ "$#" -eq "1" ]; then
+    # Execute only the specified test
+    echo -e "##### Executing test" $1
+    exec_test $1
+    if [ $? -eq '1' ]; then
+        echo -e "##### Successful test"
+        exit 0
+    else
+        exit 1
+    fi
+fi
+
+declare -a tests=()
+while IFS= read -r -d $'\0'; do
+    tests+=("$REPLY")
+done < <(find . ! -path "." -type d ! -name "courses" -print0)
+
+if ((${#tests[@]} == 0)); then
+    echo -e "No tests found!" >&2
+    exit 1
+fi
+
+echo -e "Found following tests: " ${tests[@]}
+
+echo -e "##### Executing tests"
 tests_ok=0
 
 for i in "${tests[@]}"
 do
-    echo '##########' $i
+    echo -e "\n####################" $i
     exec_test $i
     if [ $? -eq '1' ]; then
         tests_ok=$((tests_ok+1))
     fi
-
+    echo -e "####################"
 done
 
-echo '###' $tests_ok '/' ${#tests[@]} 'tests succeeded'
+echo -e "\n####################"
+echo -e "### End of tests ###"
+echo -e "####################"
+echo -e "#####" $tests_ok "/" ${#tests[@]} "tests succeeded"
 if ((tests_ok != ${#tests[@]})); then
-    exit 1
+    exitval=1
 else
-    exit 0
+    exitval=0
+fi
+
+
+echo -e "\n####################"
+echo -e "## Testing courses #"
+echo -e "####################"
+
+./run_course
+
+if (($? == 0)); then
+    exit $exitval
+else
+    exit 1
 fi

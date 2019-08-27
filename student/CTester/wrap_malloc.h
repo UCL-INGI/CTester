@@ -1,6 +1,8 @@
-/* 
+/**
+ * @file wrap_malloc.h
  * Wrapper for malloc, free and calloc
- *
+ */
+/*
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
@@ -13,6 +15,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef __WRAP_MALLOC_H_
+#define __WRAP_MALLOC_H_
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -83,7 +87,7 @@ struct params_realloc_t {
 // basic statistics for the utilisation of the realloc call
 
 struct stats_realloc_t {
-  int called;  // number of times the malloc call has been issued
+  int called;  // number of times the realloc call has been issued
   struct params_realloc_t last_params; // parameters for the last call issued
   void  *last_return;   // return value of the last realloc call issued
 };
@@ -94,7 +98,9 @@ struct stats_realloc_t {
 //void malloc_log_init(struct malloc_t *l);
 void malloc_log(void *ptr, size_t size);
 
-// true if memory was allocated by malloc, false otherwise
+// true if memory was allocated by malloc/realloc etc, false otherwise
 int malloced(void *addr);
 // total amount of memory allocated by malloc
 int  malloc_allocated();
+
+#endif // __WRAP_MALLOC_H_

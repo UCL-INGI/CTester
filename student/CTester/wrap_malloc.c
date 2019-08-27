@@ -1,4 +1,4 @@
-/* 
+/*
  * Wrapper for malloc, free and calloc
  *
  * This program is free software: you can redistribute it and/or modify
@@ -12,7 +12,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -80,7 +79,7 @@ void * __wrap_malloc(size_t size) {
     failures.malloc=NEXT(failures.malloc);
     return failures.malloc_ret;
   }
-  stats.memory.used+=size;
+  stats.memory.used+=size; // In theory, we shouldn't update it if the call fails... But anyway.
   failures.malloc=NEXT(failures.malloc);    
   void *ptr=__real_malloc(size);
   stats.malloc.last_return=ptr;

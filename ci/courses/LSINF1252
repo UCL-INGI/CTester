@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# Assume we're in the correct directory
+
+case $1 in
+	init)
+		echo "Git clone"
+        git clone https://github.com/UCL-INGI/LSINF1252.git
+		;;
+	before_autotest)
+		echo "Before autotest"
+		# Patch the advanced_queue task's run file
+		sed -i '/ret = run/i \ \ \ \ subprocess.run(shlex.split("sed -i '"'"'s|\\$(sort \\$(wildcard \\*\\.c))|$(wildcard *.c)|'"'"' student/Makefile"))' advanced_queue/run && echo -e 'Patched advanced_queue'
+#		cp $2/LSINF1252_advanced_queue_run ./advanced_queue/run
+		# Patch the three tasks with test submissions to remove the
+		# "no-use-fifty" option
+		for i in advanced_queue order_relation_linked_list strcpy;
+		do
+			sed -i 's/--no-use-fifty//' $i/run && echo -e 'Patched' $i
+		done
+		;;
+esac
+
+# That's all
+

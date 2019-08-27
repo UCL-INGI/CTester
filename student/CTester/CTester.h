@@ -1,3 +1,23 @@
+/**
+ * @file wrap.h
+ * Main CTester file, containing all base functions and structures.
+ */
+/*
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#ifndef __CTESTER_MAIN_H__
+#define __CTESTER_MAIN_H__
+
 #include <sys/mman.h>
 #include <CUnit/CUnit.h>
 #include <setjmp.h>
@@ -38,6 +58,24 @@ struct wrap_monitor_t monitored;
 struct wrap_fail_t failures;
 struct wrap_log_t logs;
 
+void reinit_all_stats()
+{
+	memset(&stats, 0, sizeof(stats));
+}
+
+void reinit_all_monitored()
+{
+	memset(&monitored, 0, sizeof(monitored));
+}
+
+/**
+ * Readable file descriptors that contain the student's code outputs.
+ */
 int stdout_cpy, stderr_cpy;
 
+FILE *fstdout, *fstderr;
+
 sigjmp_buf segv_jmp;
+
+#endif // __CTESTER_MAIN_H__
+

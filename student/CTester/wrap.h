@@ -1,3 +1,24 @@
+/**
+ * @file wrap.h
+ * Definition of all the wrapper structures: monitoring, failures,
+ * statistics.
+ */
+/*
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#ifndef __WRAP_H_
+#define __WRAP_H_
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <stddef.h>
@@ -9,6 +30,9 @@
 #include "wrap_file.h"
 #include "wrap_malloc.h"
 #include "wrap_mutex.h"
+#include "wrap_network_dns.h"
+#include "wrap_network_socket.h"
+#include "wrap_network_inet.h"
 #include "wrap_sleep.h"
 
 // Basic structures for system call wrapper
@@ -37,7 +61,44 @@ struct wrap_monitor_t {
   bool pthread_mutex_init;
   bool pthread_mutex_destroy;
   bool sleep;
+
+  bool getaddrinfo;
+  bool getnameinfo;
+  bool freeaddrinfo;
+  bool gai_strerror;
+
+  bool accept;
+  bool bind;
+  bool connect;
+  bool listen;
+  bool poll;
+  bool recv;
+  bool recvfrom;
+  bool recvmsg;
+  bool select;
+  bool send;
+  bool sendto;
+  bool sendmsg;
+  bool shutdown;
+  bool socket;
+
+  bool htons;
+  bool ntohs;
+  bool htonl;
+  bool ntohl;
 };
+
+#define MONITOR_ALL_RECV(m, v) do { \
+  m.recv = m.recvfrom = m.recvmsg = v; \
+} while (0);
+
+#define MONITOR_ALL_SEND(m, v) do { \
+  m.send = m.sendto = m.sendmsg = v; \
+} while (0);
+
+#define MONITOR_ALL_BYTEORDER(m, v) do { \
+  m.ntohs = m.htons = m.ntohl = m.htonl = v; \
+} while (0);
 
 #define MAX_LOG 1000
 
@@ -136,6 +197,76 @@ struct wrap_fail_t {
   uint32_t sleep;
   unsigned int sleep_ret;
 
+  uint32_t getaddrinfo;
+  int getaddrinfo_ret;
+  int getaddrinfo_errno;
+
+  uint32_t getnameinfo;
+  int getnameinfo_ret;
+  int getnameinfo_errno;
+
+  // freeaddrinfo - this call cannot fail, unless res is not a valid pointer.
+
+  // gai_strerror - this call cannot fail;
+  // if its parameter is an unkown error code, it just returns "Unknown error code"
+
+  uint32_t accept;
+  int accept_ret;
+  int accept_errno;
+
+  uint32_t bind;
+  int bind_ret;
+  int bind_errno;
+
+  uint32_t connect;
+  int connect_ret;
+  int connect_errno;
+
+  uint32_t listen;
+  int listen_ret;
+  int listen_errno;
+
+  uint32_t poll;
+  int poll_ret;
+  int poll_errno;
+
+  uint32_t recv;
+  int recv_ret;
+  int recv_errno;
+
+  uint32_t recvfrom;
+  int recvfrom_ret;
+  int recvfrom_errno;
+
+  uint32_t recvmsg;
+  int recvmsg_ret;
+  int recvmsg_errno;
+
+  uint32_t select;
+  int select_ret;
+  int select_errno;
+
+  uint32_t send;
+  int send_ret;
+  int send_errno;
+
+  uint32_t sendto;
+  int sendto_ret;
+  int sendto_errno;
+
+  uint32_t sendmsg;
+  int sendmsg_ret;
+  int sendmsg_errno;
+
+  uint32_t shutdown;
+  int shutdown_ret;
+  int shutdown_errno;
+
+  uint32_t socket;
+  int socket_ret;
+  int socket_errno;
+
+  // byte-order functions (htonl...) cannot fail
 } ;
 
 
@@ -160,4 +291,33 @@ struct wrap_stats_t {
   struct stats_pthread_mutex_unlock_t pthread_mutex_init;
   struct stats_pthread_mutex_unlock_t pthread_mutex_destroy;
   struct stats_sleep_t sleep;
+
+  struct stats_getaddrinfo_t getaddrinfo;
+  struct stats_getnameinfo_t getnameinfo;
+  struct stats_freeaddrinfo_t freeaddrinfo;
+  struct stats_gai_strerror_t gai_strerror;
+
+  struct stats_accept_t accept;
+  struct stats_bind_t bind;
+  struct stats_connect_t connect;
+  struct stats_listen_t listen;
+  struct stats_poll_t poll;
+  struct stats_recv_t recv;
+  struct stats_recvfrom_t recvfrom;
+  struct stats_recvmsg_t recvmsg;
+  struct stats_recv_all_t recv_all;
+  struct stats_select_t select;
+  struct stats_send_t send;
+  struct stats_sendto_t sendto;
+  struct stats_sendmsg_t sendmsg;
+  struct stats_send_all_t send_all;
+  struct stats_shutdown_t shutdown;
+  struct stats_socket_t socket;
+
+  struct stats_htons_t htons;
+  struct stats_ntohs_t ntohs;
+  struct stats_htonl_t htonl;
+  struct stats_ntohl_t ntohl;
 };
+
+#endif // __WRAP_H_
